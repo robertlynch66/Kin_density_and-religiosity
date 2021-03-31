@@ -15,7 +15,8 @@ library(dplyr)
 
 positions <- c(4,7:36,42:45,47:51)
 
-complete_data <- data2 %>% select(positions)
+library(dplyr)
+complete_data <- data2 %>% dplyr::select(positions)
 
 
 ############################################################################################################
@@ -24,15 +25,13 @@ complete_data <- data2 %>% select(positions)
 ############################################################################################################
 ############################################################################################################
 #### EXPLORATORY FACTOR ANALYSIS - measuring the unobserved (latent) variables/ factors (latent constructs)
-#EFA models are much more realistic as than PCA because they do not attmept to explain ALL the variance
+#EFA models are much more realistic as than PCA because they do not attempt to explain ALL the variance
 # in the models
 
 # Reduce dataset
-drop <- c("idwife","listenRadio","institutionloan_vs_other","wifeAbroadTravel",
+drop <- c("idwife","listenRadio","institutionloan_vs_other","wifeAbroadTravel","husband_occupation","wifeTravelINBangladesh",
           "occupation_agriculture_dummy","bank_vs_micro","assetMobilePhone","occupation_ses",
-          "marketIntegrationDhakaTime","marketIntegrationHighSchoolTime","foodSourceNow","labor_migrant_bari_in_bangladesh","husbandTravelINBangladesh",
-          "wifeTravelINBangladesh","husbandAbroadTravel","assetElectricity","useInternet","familyBariEducationAfter",
-          "relocate_MI","husband_occupation")
+          "marketIntegrationDhakaTime","marketIntegrationHighSchoolTime","husbandTravelINBangladesh")
 reduced_data <- complete_data[,!(names(complete_data) %in% drop)]
 
 
@@ -69,8 +68,8 @@ data_factorability
 KMO(data_c)
 
 # this test compares the partial correlation matrix with the pairwise correlation matrix
-#The statistic is a measure of how small the partial corealtions are relative to the original zero order correlations
-# the partial correaltion for each pair of varibales is comprised of the correlation between those variable after
+#The statistic is a measure of how small the partial corelations are relative to the original zero order correlations
+# the partial correlation for each pair of variables is comprised of the correlation between those variable after
 #partialing
 # out the influence of ALL of the other variables used in the factor analysis. If the variables shared 
 #common factors then the
@@ -333,7 +332,8 @@ reduced_data[] <- lapply(reduced_data, function(x) {
 })
 sapply(reduced_data, class)
 
-reduced_data <- reduced_data %>% select(1:20)
+reduced_data <- select (reduced_data,1:24) 
+reduced_data[,25] <- NULL
 ## deal with missing data
 
 library(polycor)
@@ -368,6 +368,59 @@ KMO(data_c)
 # 0.76                               0.65                               0.81 
 # assetComputer                landOwnedFarmAmount 
 # 0.78                               0.80 
+
+
+#loadings
+load = fa(data_c,9,rotate='oblimin',fm='mle', nfactors=3)
+
+load = load$loadings
+load = load[]
+load = data.frame(load)
+setDT(load,keep.rownames=TRUE)[]
+colnames(load)[1] <- "Indicators"
+
+colnames(load)[2:4] <- c("Geographic proximity","Economic capital","Human capital")
+load[1,1] <- "Food security"
+load[2,1] <- "Food source"
+load[3,1] <- "Total wealth"
+load[4,1] <- "Total income"
+load[5,1] <- "Labor migrants in hh"
+load[6,1] <- "Family education"
+load[7,1] <- "Perceived wealth"
+load[8,1] <- "Internet use"
+load[9,1] <- "Time to nearest Primary School"
+load[10,1] <- "Time to nearest College"
+load[11,1] <- "Time to nearest Small Bazaar"
+load[12,1] <- "Time to nearest Large Bazaar"
+load[13,1] <- "Time to nearest Town"
+load[14,1] <- "Time to nearest Main Road"
+load[15,1] <- "Time to nearest Pharmacy"
+load[16,1] <- "Time to  Hospital (MBBS site)"
+load[17,1] <- "Labor migrants in village"
+load[18,1] <- "Education wife"
+
+load[19,1] <- "Education husband"
+load[20,1] <- "Relocated to improve access to markets"
+
+load[21,1] <- "Husband's Travel"
+load[22,1] <- "Occupation market connection"
+load[23,1] <- "Age wife"
+load[24,1] <- "Own smartphone "
+load[25,1] <- "Own computer"
+load[26,1] <- "Have electricity"
+load[27,1] <- "Land owned"
+
+load.m <- melt(load, id="Indicators", variable.name="Factors", value.name="Loading", measure = colnames(load)[2:4])
+
+
+loadPlot <- ggplot(load.m, aes(Indicators, abs(Loading), fill=Loading)) + 
+  facet_wrap(~ Factors, nrow=1) + geom_bar(stat="identity")+ coord_flip() +
+  scale_fill_gradient2(name="Loading",high="blue",mid="white",low="red",midpoint=0,guide=F)+
+  ylab("Loading")+theme_bw(base_size=10)
+
+### save path analysis figure to Figures 
+ggsave("C:/Users/robert/Dropbox/PSU postdoc/Effect of religiosity on kin network density/Figures/SM figures/path diagram_MI_loadings.png")
+ggsave("C:/Users/robert/Dropbox/PSU postdoc/Effect of religiosity on kin network density/Figures/SM figures/path diagram_MI_loadings.pdf")
 
 ### KEEP EVERYTHING IN SINGLE FACTOR ANALYSIS
 library(psych)

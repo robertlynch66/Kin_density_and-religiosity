@@ -237,7 +237,7 @@ names(HusbandNW )
 
 #Type of relationship code: N= Neighbor, C= Colleague, F = Friend, B = Business relation, O = Other
 plyr::count(WifeNW$relationshipType)
-# difference between a dash and an NA -- ask mary (pull up frequencies)
+# difference between a dash and an NA -- ask Mary (pull up frequencies)
 ### clean this up first
 
 ## Do not use relationshipType!!!!!!!!!!!
@@ -344,7 +344,7 @@ HusbandNW$relationship <- as.numeric(HusbandNW$relationship)
 # <NA>   28
 # weird shit (miscoded etc...)  20 - not a big deal
 
-# what are the NA's in the wife Nw
+# what are the NA's in the wife Nw??
 
 ### Okay need to calculate percent of kin in network (0's to everyone else per respondent)
 library(tidyr)
@@ -394,7 +394,7 @@ wnr <-WifeNW %>% group_by(id_Questionaire) %>% summarise(total=n(),non_rels = su
                                                         rels_time_spent=sum(q11==1 & relationship>0 & relationship<8,na.rm=T),
                                                         non_rels_aid=sum(q12==1 & relationship==0,na.rm=T),
                                                         rels_aid=sum(q12==1 & relationship>0 & relationship<8,na.rm=T))
-## what to do with q09 and prestigePosition ???? ask mary
+## what to do with q09 and prestigePosition ???? ask Mary
 
 ## yes no rels geo distance is correct
 
@@ -469,10 +469,10 @@ data7$percent_rels_in_NW_h <- (data7$parents_kids_h+data7$pat_rels_h+data7$mat_r
 #geo_distance_rels
 #geo_distance_rels_h
 #4) economic help (number relative loan and borrow) 
-data7$rels_econ_help <- data7$rels_loan+data7$rels_loaning
+data7$rels_econ_help <- data7$rels_loan+data7$rels_loaning+0.001
 data7$rels_econ_help_h <- data7$rels_loan_h+data7$rels_loaning_h
 
-data7$non_rels_econ_help <- data7$non_rels_loan+data7$non_rels_loaning
+data7$non_rels_econ_help <- data7$non_rels_loan+data7$non_rels_loaning+0.001
 data7$non_rels_econ_help_h <- data7$non_rels_loan_h+data7$non_rels_loaning_h
 
 data7$percent_rels_econ_help <- (data7$rels_econ_help)/(data7$rels_econ_help+data7$non_rels_econ_help)
@@ -480,10 +480,10 @@ data7$percent_rels_econ_help_h <- (data7$rels_econ_help_h)/(data7$rels_econ_help
 
 #5) emotional support
 
-data7$emot_support_rels <- data7$rels_ask_advice+data7$rels_asking_advice+data7$rels_time_spent
+data7$emot_support_rels <- data7$rels_ask_advice+data7$rels_asking_advice+data7$rels_time_spent+0.001
 data7$emot_support_rels_h <- data7$rels_ask_advice_h+data7$rels_asking_advice_h+data7$rels_time_spent_h
 
-data7$emot_support_non_rels <- data7$non_rels_ask_advice+data7$non_rels_asking_advice+data7$non_rels_time_spent
+data7$emot_support_non_rels <- data7$non_rels_ask_advice+data7$non_rels_asking_advice+data7$non_rels_time_spent+0.001
 data7$emot_support_non_rels_h <-  data7$non_rels_ask_advice_h+data7$non_rels_asking_advice_h+data7$non_rels_time_spent_h
   
   
@@ -491,18 +491,18 @@ data7$percent_rels_emot_support <- data7$emot_support_rels/(data7$emot_support_r
 data7$percent_rels_emot_support_h <- data7$emot_support_rels_h/(data7$emot_support_rels_h+data7$emot_support_non_rels_h)
                                                         
 #7) childcare help 
-data7$childcare_help_rels <- data7$rels_help_childcare+data7$help_rels_childcare
+data7$childcare_help_rels <- data7$rels_help_childcare+data7$help_rels_childcare+0.001
 
-data7$childcare_help_non_rels <- data7$help_nonrels_childcare+data7$nonrels_help_childcare
+data7$childcare_help_non_rels <- data7$help_nonrels_childcare+data7$nonrels_help_childcare+0.001
 
 data7$childcare_help_rels_percent <- data7$childcare_help_rels/(data7$childcare_help_rels+data7$childcare_help_non_rels)
 
 #7) overall help 
-data7$overall_help_rels <- data7$rels_econ_help + data7$emot_support_rels + data7$childcare_help_rels+data7$rels_aid
+data7$overall_help_rels <- data7$rels_econ_help + data7$emot_support_rels + data7$childcare_help_rels+data7$rels_aid+0.001
 data7$overall_help_rels_h <- data7$rels_econ_help_h + data7$emot_support_rels_h + data7$help_rels_work_h+data7$rels_help_work_h+data7$rels_aid_h
 
 data7$overall_help_non_rels <- data7$non_rels_econ_help+data7$emot_support_non_rels+data7$childcare_help_non_rels+
-  data7$non_rels_aid
+  data7$non_rels_aid+0.001
 
 data7$overall_help_non_rels_h <- data7$non_rels_econ_help_h +data7$emot_support_non_rels_h+
   data7$nonrels_help_work_h+data7$help_nonrels_work_h+data7$non_rels_aid_h

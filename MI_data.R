@@ -20,7 +20,7 @@ data <- read.csv("new_MI_data.csv")
 #- from least to most integrated
 # 2013 PNAS paper
 ## Make occupations into 4 factors
-#1) farming and animal husbandry (ag=1, non-ag=2)
+#1) farming and animal husbandry (ag=1, non-ag=0)
 data$occupation_agriculture_dummy <- ifelse(data$husband_occupation==6 | data$husband_occupation==1|data$husband_occupation==2|
                                         data$husband_occupation==5,1,0)
 
@@ -28,7 +28,7 @@ data$occupation_agriculture_dummy <- ifelse(data$husband_occupation==6 | data$hu
 #2) connected to markets (low to high) e.g. dependency on markets
 # age 
 # 0 lowest fishing and all agriculture husbandry and fishing - (least - feed yourself etc...) sharecroppers
-# 1 day labor etc..   anybody selling their labor, not enaged in primary food production, rickshaw drivers
+# 1 day labor etc..   anybody selling their labor, not engaged in primary food production, rickshaw drivers
 # 2 business , have a small business
 # 3 education based jobs - service. professional, semi-professional 
 
@@ -49,7 +49,7 @@ data$occupation_mkt_connection[husband_occupation==19 |husband_occupation==21|hu
 detach(data)
                 ####                      HERE!!!!!
 #3) SES (low to high)
-# low SES rickshaw drivers- education baed jobs at the top, skilled labor above unskilled labor.
+# low SES rickshaw drivers- education based jobs at the top, skilled labor above unskilled labor.
 attach(data)
 data$occupation_ses[husband_occupation==0| husband_occupation==4|husband_occupation==2|
 husband_occupation==3|husband_occupation==14|husband_occupation==23] <- 0
@@ -169,9 +169,9 @@ data$occupation_agriculture_dummy <- recode(data$occupation_agriculture_dummy,'0
 # institutionloan_vs_other is strange - maybe drop
 # bank_vs_micro is strange - maybe drop
 # institutionloan_vs_other_h might be useless
-# keep agricultural dummy seperate from income and wealth
-# I might not have occupation_ses corrrect - check with mary
-# age of wife is weirdly connect to MI varibales
+# keep agricultural dummy separate from income and wealth
+# I might not have occupation_ses correct - check with mary
+# age of wife is weirdly connect to MI variables
 
 # get 10-12 assets of particular interest for MI
 w1 <- read.csv("Main_table_pgs_1-6_2.csv")

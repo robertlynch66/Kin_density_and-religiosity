@@ -30,12 +30,12 @@ library(readr)
 setwd("C:/Users/robert/Dropbox/Github/Kin_networks_Bangladesh")
 newdata <- read_csv("newdata.csv")
 options(scipen=999)
-# remove duplicated women
-newdata <- newdata %>% distinct(idwife, .keep_all = TRUE)
-# 1) center and scale variables for easier interpretation of parameter estimates
-newdata$religious_knowledge_scale <-  newdata$religious_knowledge_scale-mean(newdata$religious_knowledge_scale, na.rm=T)
-newdata$hh_total  <- newdata$hh_total-mean(newdata$hh_total, na.rm=T)  
-newdata$kids_in_hh  <- newdata$kids_in_hh-mean(newdata$kids_in_hh, na.rm=T)
+# # remove duplicated women
+# newdata <- newdata %>% distinct(idwife, .keep_all = TRUE)
+# # 1) center and scale variables for easier interpretation of parameter estimates
+# newdata$religious_knowledge_scale <-  newdata$religious_knowledge_scale-mean(newdata$religious_knowledge_scale, na.rm=T)
+# newdata$hh_total  <- newdata$hh_total-mean(newdata$hh_total, na.rm=T)  
+# newdata$kids_in_hh  <- newdata$kids_in_hh-mean(newdata$kids_in_hh, na.rm=T)
 
 # [1] "idwife"                      "couple_id"                   "idhusband"                  
 # [4] "sex"                         "age_wife"                    "age_h"                      
@@ -353,623 +353,674 @@ post_dists2 <- mcmc_intervals(result, pars = c("Total NW Size",
 post_dists2
 ggsave(post_dists2, filename = "Figures/post_dists2.pdf")
 ggsave(post_dists2, filename = "Figures/post_dists2.png")
-#ggsave(post_dists2, filename = "Figures/post_dists2.pdf", width = 8, height = 12)
 
-### Old geo dist plots for rels and non rels using mean distance
 
-# get mean geo distance  non rels
-# M1 <- readRDS("C:/Users/robert/Dropbox/Github/Kin_networks_Bangladesh/results/Geo_distance_non_relatives_lognormal.rds")
-# 
-# ## add the dummy variable back
-# data$dummy_no_non_rels <- ifelse(data$non_rels==0,1,0)
-# data$geo_distance_non_rels[is.na(data$geo_distance_non_rels)] <- 5
-# data$dummy_no_non_rels[is.na(data$dummy_no_non_rels)] <- 0
-# 
-# attach(data)
-# newdata <- data.frame(
-#   kids_in_hh = mean(kids_in_hh),
-#   age_wife = mean(age_wife),
-#   religion=mean(religion),
-#   sex=0,
-#   dummy_no_non_rels=mean(dummy_no_non_rels),
-#   familyBariReligiousAfter = c(-1,0,1),
-#   religious_knowledge_scale=mean(religious_knowledge_scale),
-#   MI_geo_proximity=mean(MI_geo_proximity),
-#   MI_economic_capital=mean(MI_economic_capital),
-#   MI_human_capital=mean(MI_human_capital)
-# )
-# detach(data)
-# 
-# mu_summary <-
-#   fitted(M1, 
-#          newdata = newdata, probs=c(0.05,0.95)) %>%
-#   as_tibble() %>%
-#   bind_cols(religious_seq)
-# 
-# mu_summary
-# 
-# 
-# data$religiosity <- data$familyBariReligiousAfter
-# 
-# data2 <- data %>% left_join (mu_summary, by =c("religiosity"="religiosity"))
-# data2$religiosity[is.na(data2$religiosity)]<- 0
-# 
-# #1=khana member,(same household)
-# #2=near bari/neighbor (walking distance), 
-# #3=other place in Matlab,
-# #4=Other Place in Bangladesh, 
-# #5=Abroad, 
-# library(wesanderson)
-# fig5 <- ggplot(data2, aes(x=factor(religiosity), y=geo_distance_non_rels,fill=factor(religiosity), colour=factor(religiosity))) +
-#   geom_boxplot(show.legend=T, width=0.2,fill="transparent",aes(colour=factor(religiosity)))+
-#   geom_jitter(width = 0.2,show.legend=T)+
-#   
-#   
-#   geom_smooth(method = 'lm', aes(group=1,y=Estimate,ymin=Q5,ymax=Q95,colour="Credibility interval"),
-#               stat = "identity",fill="grey16",colour="black",show.legend=T)+
-#   #theme(legend.position = "none")+
-#   
-#   scale_x_discrete(breaks=c("-1","0","1"),name="Religiosity",
-#                    labels=c("Less", "Equal", "More"))+
-#   scale_y_continuous(name="Geographic distance non relatives",
-#                      breaks=c(1,2,3,4,5), labels=c("Same house","Neighbor","Matlab","Bangladesh","Abroad"),limits=c(1,5))+
-#   theme_bw() +
-#   
-#   # scale_colour_discrete(name = "Credibility Interval", labels = c("+/- 97.5%")) +
-#   scale_fill_manual(name = "Boxplots", labels = c("Less religious","Equally religious", "More religious"),
-#                     
-#                     values=wes_palette(n=4, name="FantasticFox1"),
-#                     
-#                     
-#                     guide = guide_legend(override.aes = list(linetype = c(0, 0,0))))+
-#   
-#   
-#   scale_colour_manual(name = "Credibility Interval", labels = c("+/- 97.5%", "", ""),
-#                       values = c(wes_palette(n=4, name="FantasticFox1"),"black"),
-#                       
-#                       
-#                       guide = guide_legend(override.aes = list(linetype = c(1,0,0))))+
-#   
-#   theme(panel.grid.major = element_blank(),
-#         panel.grid.minor = element_blank(),
-#         legend.key.size = unit(0.15, "in"),
-#         legend.key = element_rect(colour = "transparent", fill = NA),
-#         legend.box.background = element_blank(),
-#         
-#         axis.text.x = element_text(colour="grey20",size=10,angle=0,face="bold"),
-#         axis.text.y = element_text(colour="grey20",size=10,angle=0,hjust=0,vjust=0,face="bold"),  
-#         axis.title.x = element_text(colour="black",size=12,angle=0,hjust=.5,vjust=0,face="bold"),
-#         axis.title.y = element_text(colour="black",size=12,angle=90,hjust=.5,vjust=.5,face="bold"))+
-#   theme(legend.position="none")+theme(axis.title.x=element_blank(),
-#                                       axis.text.x=element_blank(),
-#                                       axis.ticks.x=element_blank())
-# 
-# fig5
-# ############################################################################################################################################
-# # reversed axes
-# # get mean geo distance  non rels
-# M1 <- readRDS("C:/Users/robert/Dropbox/Github/Kin_networks_Bangladesh/results/Religiosity_predicted_by_geo_distance_non_relatives_normal.rds")
-# 
-# ## add the dummy variable back
-# data$dummy_no_non_rels <- ifelse(data$non_rels==0,1,0)
-# data$geo_distance_non_rels[is.na(data$geo_distance_non_rels)] <- 5
-# data$dummy_no_non_rels[is.na(data$dummy_no_non_rels)] <- 0
-# 
-# 
-# ### link data 2 to the location data in Models (for alternative figure)
-# 
-# # read in wife NW
-# WifeNW <- read_csv("HHQPeopleinNW.csv")
-# 
-# # key variables are location and relationship
-# WifeNW$relationship <- as.numeric(WifeNW$relationship)
-# plyr::count(WifeNW$relationship)
-# WifeNW$relationship[is.na(WifeNW$relationship)]<- 99
-# WifeNW$location[WifeNW$location == 0] <- NA
-# WifeNW$location[WifeNW$location >5 ] <- NA
-# plyr::count(WifeNW$location)
-# # Relationship codes
-# #0 = not a relative, 1 = nijer poribar (parents and kids), 2 = babar bari (fathers family- 2nd or 3rd degree relatives),
-# #3 = mayer bari (mother side - 2nd or 3rd degree relatives), 4 = shoshur bari (in-laws, affinal), 
-# #5= babar bari (far relative), 6 = mayer bari (far relative), 7 = shoshur bari (far relative)
-# 
-# # Location codes
-# #1=khana member,(same household)
-# #2=near bari/neighbor (walking distance), 
-# #3=other place in Matlab,
-# #4=Other Place in Bangladesh, 
-# #5=Abroad, 
-# 
-# z <- WifeNW %>% dplyr::select (2,3,6,8)
-# 
-# # get location of non relatives
-# nr <- z %>% filter (relationship==0)
-# r <- z %>% filter (relationship>0 & relationship<8)
-# 
-# # get non relatives
-# # join non-rels to data (d)
-# non_rels <- nr %>% left_join (data, by=c("id_Questionaire"="idwife"))
-# 
-# 
-# non_rels$location [is.na(non_rels$location)] <- 2
-# hist(non_rels$familyBariReligiousAfter)
-# 
-# attach(non_rels)
-# newdata <- data.frame(
-#   kids_in_hh = mean(kids_in_hh),
-#   age_wife = mean(age_wife),
-#   religion=mean(religion),
-#   sex=0,
-#   dummy_no_non_rels=mean(dummy_no_non_rels),
-#   location = c(1,2,3,4,5),
-#   religious_knowledge_scale=mean(religious_knowledge_scale),
-#   MI_geo_proximity=mean(MI_geo_proximity),
-#   MI_economic_capital=mean(MI_economic_capital),
-#   MI_human_capital=mean(MI_human_capital)
-# )
-# detach(non_rels)
-# 
-# mu_summary <-
-#   fitted(M1, 
-#          newdata = newdata, probs=c(0.05,0.95)) %>%
-#   as_tibble() 
-# 
-# mu_summary$location <- c(1,2,3,4,5)
-# mu_summary
-# 
-# 
-# 
-# 
-# data2 <- non_rels %>% left_join (mu_summary, by =c("location"="location"))
-# 
-# data2$familyBariReligiousAfter<- as.numeric(data2$familyBariReligiousAfter)
-# library(wesanderson)
-# fig5a <- ggplot(data2, aes(x=factor(location), y=familyBariReligiousAfter,fill=factor(location), colour=factor(location))) +
-#   geom_boxplot(show.legend=T, width=0.2,fill="transparent",aes(colour=factor(location)))+
-#   geom_jitter(width = 0.2,show.legend=T)+
-#   
-#   
-#   geom_smooth(method = 'lm', aes(group=1,y=Estimate,ymin=Q5,ymax=Q95,colour="Credibility interval"),
-#               stat = "identity",fill="grey16",colour="black",show.legend=T)+
-#   #theme(legend.position = "none")+
-#   
-#   
-#   
-#   scale_y_continuous(name="Religiosity",
-#                      breaks=c(-1,0,1), labels=c("Less", "Equal", "More"),limits=c(-1.2,1.2))+
-#   
-#   
-#   scale_x_discrete(name="Geographic distance non relatives",
-#                    breaks=c(1,2,3,4,5), labels=c("Same house","Neighbor","Matlab","Bangladesh","Abroad")) +   #,limits=c(1,5))+
-#   theme_bw() +
-#   
-#   # scale_colour_discrete(name = "Credibility Interval", labels = c("+/- 97.5%")) +
-#   scale_fill_manual(name = "Boxplots", labels = c("Less religious","Equally religious", "More religious"),
-#                     
-#                     values=wes_palette(n=5, name="FantasticFox1"),
-#                     
-#                     
-#                     guide = guide_legend(override.aes = list(linetype = c(0, 0,0,0,0))))+
-#   
-#   
-#   scale_colour_manual(name = "Credibility Interval", labels = c("+/- 97.5%", "", ""),
-#                       values = c(wes_palette(n=5, name="FantasticFox1"),"black"),
-#                       
-#                       
-#                       guide = guide_legend(override.aes = list(linetype = c(1,0,0,0,0))))+
-#   
-#   theme(panel.grid.major = element_blank(),
-#         panel.grid.minor = element_blank(),
-#         legend.key.size = unit(0.15, "in"),
-#         legend.key = element_rect(colour = "transparent", fill = NA),
-#         legend.box.background = element_blank(),
-#         
-#         axis.text.x = element_text(colour="grey20",size=10,angle=0,face="bold"),
-#         axis.text.y = element_text(colour="grey20",size=10,angle=0,hjust=0,vjust=0,face="bold"),  
-#         axis.title.x = element_text(colour="black",size=12,angle=0,hjust=.5,vjust=0,face="bold"),
-#         axis.title.y = element_text(colour="black",size=12,angle=90,hjust=.5,vjust=.5,face="bold")) 
-# 
-# 
-# 
-# # +
-# #   theme(legend.position="none")+theme(axis.title.x=element_blank(),
-# #                                        axis.text.x=element_blank(),
-# #                                       axis.ticks.x=element_blank())
-# 
-# fig5a
-# 
-# 
-# #### Fix legend and plot above - then repeat for figure 6a (geographic distance relatives)
-# #################################################################################################################
-# ####################################################################################################################
-# #################################################################################################################
-# ####################################################################################################################
-# # get mean geo distance rels
-# M1 <- readRDS("C:/Users/robert/Dropbox/Github/Kin_networks_Bangladesh/results/Geo_distance_relatives_lognormal.rds")
-# attach(data)
-# newdata <- data.frame(
-#   kids_in_hh = mean(kids_in_hh),
-#   age_wife = mean(age_wife),
-#   religion=mean(religion),
-#   sex=mean(sex),
-#   familyBariReligiousAfter = c(-1,0,1),
-#   religious_knowledge_scale=mean(religious_knowledge_scale),
-#   MI_geo_proximity=mean(MI_geo_proximity),
-#   MI_economic_capital=mean(MI_economic_capital),
-#   MI_human_capital=mean(MI_human_capital)
-# )
-# detach(data)
-# 
-# mu_summary <-
-#   fitted(M1, 
-#          newdata = newdata, probs=c(0.05,0.95)) %>%
-#   as_tibble() %>%
-#   # let's tack on the `religiosity` values from `religious_seq` if necessary (here it is not)
-#   bind_cols(religious_seq)
-# 
-# mu_summary
-# 
-# 
-# data$religiosity <- data$familyBariReligiousAfter
-# 
-# data2 <- data %>% left_join (mu_summary, by =c("religiosity"="religiosity"))
-# 
-# #1=khana member,(same household)
-# #2=near bari/neighbor (walking distance), 
-# #3=other place in Matlab,
-# #4=Other Place in Bangladesh, 
-# #5=Abroad, 
-# 
-# fig6 <- ggplot(data2, aes(x=factor(religiosity), y=geo_distance_rels,fill=factor(religiosity), colour=factor(religiosity))) +
-#   geom_boxplot(show.legend=T, width=0.2,fill="transparent",aes(colour=factor(religiosity)))+
-#   geom_jitter(width = 0.2,show.legend=T)+
-#   
-#   
-#   geom_smooth(method = 'lm', aes(group=1,y=Estimate,ymin=Q5,ymax=Q95,colour="Credibility interval"),
-#               stat = "identity",fill="grey16",colour="black",show.legend=T)+
-#   #theme(legend.position = "none")+
-#   
-#   scale_x_discrete(breaks=c("-1","0","1"),name="Religiosity",
-#                    labels=c("Less", "Equal", "More"))+
-#   scale_y_continuous(name="Geographic distance relatives",
-#                      breaks=c(1,2,3,4,5), labels=c("Same house","Neighbor","Matlab","Bangladesh","Abroad"),limits=c(1,5))+
-#   theme_bw() +
-#   
-#   # scale_colour_discrete(name = "Credibility Interval", labels = c("+/- 97.5%")) +
-#   scale_fill_manual(name = "Boxplots", labels = c("Less religious","Equally religious", "More religious"),
-#                     
-#                     values=wes_palette(n=4, name="FantasticFox1"),
-#                     
-#                     
-#                     guide = guide_legend(override.aes = list(linetype = c(0, 0,0))))+
-#   
-#   
-#   scale_colour_manual(name = "Credibility Interval", labels = c("+/- 97.5%", "", ""),
-#                       values = c(wes_palette(n=4, name="FantasticFox1"),"black"),
-#                       
-#                       
-#                       guide = guide_legend(override.aes = list(linetype = c(1,0,0))))+
-#   
-#   theme(panel.grid.major = element_blank(),
-#         panel.grid.minor = element_blank(),
-#         legend.key.size = unit(0.15, "in"),
-#         legend.key = element_rect(colour = "transparent", fill = NA),
-#         legend.box.background = element_blank(),
-#         
-#         axis.text.x = element_text(colour="grey20",size=10,angle=0,face="bold"),
-#         axis.text.y = element_text(colour="grey20",size=10,angle=0,hjust=0,vjust=0,face="bold"),  
-#         axis.title.x = element_text(colour="black",size=12,angle=0,hjust=.5,vjust=0,face="bold"),
-#         axis.title.y = element_text(colour="black",size=12,angle=90,hjust=.5,vjust=.5,face="bold"))+
-#   theme(legend.position="none")+theme(axis.title.x=element_blank(),
-#                                       axis.text.x=element_blank(),
-#                                       axis.ticks.x=element_blank())
-# 
-# fig6
-# #####################################################################################################################
-# #####################################################################################################################
-# #####################################################################################################################
-# #####################################################################################################################
-# 
-# ## rerun geo dist models first with DV as religiosity
-# library(wesanderson)
-# library(tidyverse)
-# library(brms)
-# 
-# setwd("C:/Users/robert/Dropbox/Github/Kin_networks_Bangladesh")
-# data <- read.csv("newdata.csv")
-# options(scipen=999)
-# data <- data %>% filter (sex==0)
-# 
-# # get mean geo distance  non rels
-# M1 <- readRDS("C:/Users/robert/Dropbox/Github/Kin_networks_Bangladesh/results/Religiosity_predicted_by_geo_distance_non_relatives_normal.rds")
-# 
-# ## add the dummy variable back
-# data$dummy_no_non_rels <- ifelse(data$non_rels==0,1,0)
-# data$geo_distance_non_rels[is.na(data$geo_distance_non_rels)] <- 5
-# data$dummy_no_non_rels[is.na(data$dummy_no_non_rels)] <- 0
-# 
-# attach(data)
-# newdata <- data.frame(
-#   kids_in_hh = mean(kids_in_hh),
-#   age_wife = mean(age_wife),
-#   religion=mean(religion),
-#   sex=mean(sex),
-#   dummy_no_non_rels=mean(dummy_no_non_rels),
-#   geo_distance_non_rels = c(1,2,3,4,5),
-#   religious_knowledge_scale=mean(religious_knowledge_scale),
-#   MI_geo_proximity=mean(MI_geo_proximity),
-#   MI_economic_capital=mean(MI_economic_capital),
-#   MI_human_capital=mean(MI_human_capital)
-# )
-# detach(data)
-# 
-# mu_summary <-
-#   fitted(M1, 
-#          newdata = newdata, probs=c(0.05,0.95)) %>%
-#   as_tibble() 
-# 
-# 
-# 
-# mu_summary$geo_distance_non_rels2 <- c(1,2,3,4,5)
-# 
-# mu_summary <- mu_summary[c(2,4,5),]
-# 
-# # group same house with neighbor and Matlab and Bangladesh together
-# data$geo_distance_non_rels <- round(data$geo_distance_non_rels, digits = 0)
-# data$geo_distance_non_rels2 <- ifelse(data$geo_distance_non_rels==1,2,data$geo_distance_non_rels)
-# data$geo_distance_non_rels2 <- ifelse(data$geo_distance_non_rels2==3,4,data$geo_distance_non_rels2)
-# 
-# plyr::count(data$geo_distance_non_rels2)
-# 
-# data2 <- data %>% left_join (mu_summary, by =c("geo_distance_non_rels2"="geo_distance_non_rels2"))
-# 
-# plyr::count(data2$geo_distance_non_rels2)
-# 
-# 
-# 
-# fig5 <- ggplot(data2, aes(x=factor(geo_distance_non_rels2), y=familyBariReligiousAfter,fill=factor(geo_distance_non_rels2), colour=factor(geo_distance_non_rels2))) +
-#   geom_boxplot(show.legend=T, width=0.2,fill="transparent",aes(colour=factor(geo_distance_non_rels2)))+
-#   geom_jitter(width = 0.2,show.legend=T)+
-#   
-#   
-#   geom_smooth(method = 'lm', aes(group=1,y=Estimate,ymin=Q5,ymax=Q95,colour="Credibility interval"),
-#               stat = "identity",fill="grey16",colour="black",show.legend=T)+
-#   #theme(legend.position = "none")+
-#   
-#   
-#   
-#   scale_x_discrete(name="Geographic distance non-relatives",
-#                    breaks=c(2,4,5), labels=c("Same house\n Or Neighbor","Matlab\n Or Bangladesh","Abroad"))+
-#   
-#   
-#   
-#   scale_y_continuous(name="Relative Religiosity",
-#                      breaks=c(-1,0,1), labels=c("Less","Same","More"),limits=c(-1,1))+
-#   theme_bw() +
-#   
-#   # scale_colour_discrete(name = "Credibility Interval", labels = c("+/- 97.5%")) +
-#   scale_fill_manual(name = "Boxplots", labels = c("Less religious","Equally religious", "More religious"),
-#                     
-#                     values=wes_palette(n=3, name="FantasticFox1"),
-#                     
-#                     
-#                     guide = guide_legend(override.aes = list(linetype = c(0, 0,0))))+
-#   
-#   
-#   scale_colour_manual(name = "Credibility Interval", labels = c("+/- 97.5%", "", ""),
-#                       values = c(wes_palette(n=3, name="FantasticFox1"),"black"),
-#                       
-#                       
-#                       guide = guide_legend(override.aes = list(linetype = c(1,0,0))))+
-#   
-#   theme(panel.grid.major = element_blank(),
-#         panel.grid.minor = element_blank(),
-#         legend.key.size = unit(0.15, "in"),
-#         legend.key = element_rect(colour = "transparent", fill = NA),
-#         legend.box.background = element_blank(),
-#         
-#         axis.text.x = element_text(colour="grey20",size=10,angle=0,face="bold"),
-#         axis.text.y = element_text(colour="grey20",size=10,angle=0,hjust=0,vjust=0,face="bold"),  
-#         axis.title.x = element_text(colour="black",size=12,angle=0,hjust=.5,vjust=0,face="bold"),
-#         axis.title.y = element_text(colour="black",size=12,angle=90,hjust=.5,vjust=.5,face="bold"))+
-#   theme(legend.position="none") #+
-# # theme(axis.title.x=element_blank(),
-# #                                axis.text.x=element_blank(),
-# #                             axis.ticks.x=element_blank())
-# 
-# fig5
-# 
-# #1=khana member,(same household)
-# #2=near bari/neighbor (walking distance), 
-# #3=other place in Matlab,
-# #4=Other Place in Bangladesh, 
-# #5=Abroad, 
-# 
-# #################################################################################################################
-# ####################################################################################################################
-# #################################################################################################################
-# ####################################################################################################################
-# # get mean geo distance rels
-# library(wesanderson)
-# library(tidyverse)
-# library(brms)
-# 
-# setwd("C:/Users/robert/Dropbox/Github/Kin_networks_Bangladesh")
-# data <- read.csv("newdata.csv")
-# options(scipen=999)
-# data <- data %>% filter (sex==0)
-# 
-# # get mean geo distance  non rels
-# M1 <- readRDS("C:/Users/robert/Dropbox/Github/Kin_networks_Bangladesh/results/Religiosity_predicted_by_geo_distance_relatives_normal.rds")
-# 
-# ## add the dummy variable back
-# 
-# attach(data)
-# newdata <- data.frame(
-#   kids_in_hh = mean(kids_in_hh),
-#   age_wife = mean(age_wife),
-#   religion=mean(religion),
-#   sex=mean(sex),
-#   #dummy_no_non_rels=mean(dummy_no_non_rels),
-#   geo_distance_rels = c(1,2,3,4,5),
-#   religious_knowledge_scale=mean(religious_knowledge_scale),
-#   MI_geo_proximity=mean(MI_geo_proximity),
-#   MI_economic_capital=mean(MI_economic_capital),
-#   MI_human_capital=mean(MI_human_capital)
-# )
-# detach(data)
-# 
-# mu_summary <-
-#   fitted(M1, 
-#          newdata = newdata, probs=c(0.05,0.95)) %>%
-#   as_tibble() 
-# 
-# 
-# 
-# mu_summary$geo_distance_rels2 <- c(1,2,3,4,5)
-# 
-# #mu_summary <- mu_summary[c(2,4,5),]
-# 
-# # group same house with neighbor and Matlab and Bangladesh together
-# data$geo_distance_rels <- round(data$geo_distance_rels, digits = 0)
-# 
-# 
-# 
-# 
-# data$geo_distance_rels2 <- ifelse(data$geo_distance_rels>3,3,data$geo_distance_rels)
-# 
-# plyr::count(data$geo_distance_rels2)
-# ##### HERE!!!!!  There are same houshold, neighbor and 
-# 
-# 
-# data2 <- data %>% left_join (mu_summary, by =c("geo_distance_rels2"="geo_distance_rels2"))
-# 
-# data2$geo_distance_rels2[is.na(data2$geo_distance_rels2)] = 3
-# 
-# plyr::count(data2$geo_distance_rels2)
-# 
-# 
-# 
-# fig6 <- ggplot(data2, aes(x=factor(geo_distance_rels2), y=familyBariReligiousAfter,fill=factor(geo_distance_rels2), colour=factor(geo_distance_rels2))) +
-#   geom_boxplot(show.legend=T, width=0.2,fill="transparent",aes(colour=factor(geo_distance_rels2)))+
-#   geom_jitter(width = 0.2,show.legend=T)+
-#   
-#   
-#   geom_smooth(method = 'lm', aes(group=1,y=Estimate,ymin=Q5,ymax=Q95,colour="Credibility interval"),
-#               stat = "identity",fill="grey16",colour="black",show.legend=T)+
-#   #theme(legend.position = "none")+
-#   
-#   
-#   
-#   scale_x_discrete(name="Geographic distance relatives",
-#                    breaks=c(1,2,3), labels=c("Same household", "Neighbor","Matlab\n Or Bangladesh"))+
-#   
-#   
-#   
-#   scale_y_continuous(name="Relative Religiosity",
-#                      breaks=c(-1,0,1), labels=c("Less","Same","More"),limits=c(-1,1))+
-#   theme_bw() +
-#   
-#   # scale_colour_discrete(name = "Credibility Interval", labels = c("+/- 97.5%")) +
-#   scale_fill_manual(name = "Boxplots", labels = c("Less religious","Equally religious", "More religious"),
-#                     
-#                     values=wes_palette(n=3, name="FantasticFox1"),
-#                     
-#                     
-#                     guide = guide_legend(override.aes = list(linetype = c(0, 0,0))))+
-#   
-#   
-#   scale_colour_manual(name = "Credibility Interval", labels = c("+/- 97.5%", "", ""),
-#                       values = c(wes_palette(n=3, name="FantasticFox1"),"black"),
-#                       
-#                       
-#                       guide = guide_legend(override.aes = list(linetype = c(1,0,0))))+
-#   
-#   theme(panel.grid.major = element_blank(),
-#         panel.grid.minor = element_blank(),
-#         legend.key.size = unit(0.15, "in"),
-#         legend.key = element_rect(colour = "transparent", fill = NA),
-#         legend.box.background = element_blank(),
-#         
-#         axis.text.x = element_text(colour="grey20",size=10,angle=0,face="bold"),
-#         axis.text.y = element_text(colour="grey20",size=10,angle=0,hjust=0,vjust=0,face="bold"),  
-#         axis.title.x = element_text(colour="black",size=12,angle=0,hjust=.5,vjust=0,face="bold"),
-#         axis.title.y = element_text(colour="black",size=12,angle=90,hjust=.5,vjust=.5,face="bold"))+
-#   theme(legend.position="none") #+
-# # theme(axis.title.x=element_blank(),
-# #                                axis.text.x=element_blank(),
-# #                             axis.ticks.x=element_blank())
-# 
-# fig6
-# 
-# 
-# 
-# ## brms figures -- in Mcelreaths book
-# #https://bookdown.org/ajkurz/Statistical_Rethinking_recoded/linear-models.html#a-gaussian-model-of-height
-# 
-# 
-# 
-# 
-# # To change the probability intervals
-# 
-# fitted(b4.3, newdata = weight.seq, probs = c(.25, .75))
-# 
-# 
 # # Plot the Markov Chains
-# plot(M1)
-# 
-# 
+library(ggplot2)
+M1 <- readRDS("C:/Users/robert/Dropbox/Github/Kin_networks_Bangladesh/results/NW_total_lognormal.rds")
+posterior <- as.array(M1)
+dim(posterior)
+dimnames(posterior)
+
+posterior <- posterior[1:4000, 1:4, 1:9]
+dimnames(posterior)$parameters <- c("Int","Kids\nin\nHH","Sibs","Religion",
+                                    "Religiosity","Religious\nKnowledge","MI\nGeographic","MI\nEcon\nCapital",
+                                    "MI\nHum\nCapital")
+color_scheme_set("blue")
+
+p1 <- mcmc_trace(posterior, pars = c("Int","Kids\nin\nHH","Sibs","Religion",
+                                     "Religiosity","Religious\nKnowledge","MI\nGeographic","MI\nEcon\nCapital",
+                                     "MI\nHum\nCapital"), 
+                 facet_args = list(ncol = 1, strip.position = "left"))
+
+
+plot_1<- p1 + 
+  
+  ggtitle("Trace Plots for Total Size of Social Network")+
+  theme(axis.text.x = element_text(colour="black",size=10,angle=0,face="plain"),
+        axis.ticks.x = element_line(size = 1),
+        axis.ticks.y = element_line(size = 0.08),
+        axis.text.y = element_text(colour="grey8",size=4,angle=0,hjust=0,vjust=0,face="plain"),  
+        axis.title.x = element_text(colour="grey20",size=11,angle=0,hjust=.5,vjust=0,face="plain"),
+        axis.title.y = element_text(colour="grey20",size=11,angle=90,hjust=.5,vjust=.5,face="plain"))
+
+plot_1
+setwd("C:/Users/robert/Dropbox/PSU postdoc/Effect of religiosity on kin network density/Figures/SM figures/")
+library(bayesplot)
+library("rstan")
+ggsave(plot_1, filename = "C:/Users/robert/Dropbox/PSU postdoc/Effect of religiosity on kin network density/Figures/SM figures/Trace_plot_1.png", 
+       width = 10, height = 12, device = "png", 
+       dpi = 600,units = "in")
+
+
+#### next one
+M1 <- readRDS("C:/Users/robert/Dropbox/Github/Kin_networks_Bangladesh/results/relatives_in_NW_lognormal.rds")
+posterior <- as.array(M1)
+dim(posterior)
+dimnames(posterior)
+
+posterior <- posterior[1:4000, 1:4, 1:9]
+dimnames(posterior)$parameters <- c("Int","Kids\nin\nHH","Sibs","Religion",
+                                    "Religiosity","Religious\nKnowledge","MI\nGeographic","MI\nEcon\nCapital",
+                                    "MI\nHum\nCapital")
+color_scheme_set("blue")
+
+p1 <- mcmc_trace(posterior, pars = c("Int","Kids\nin\nHH","Sibs","Religion",
+                                     "Religiosity","Religious\nKnowledge","MI\nGeographic","MI\nEcon\nCapital",
+                                     "MI\nHum\nCapital"), 
+                 facet_args = list(ncol = 1, strip.position = "left"))
+
+
+plot_1<- p1 + 
+  
+  ggtitle("Trace Plots for Number of Relatives in Social Network")+
+  theme(axis.text.x = element_text(colour="black",size=10,angle=0,face="plain"),
+        axis.ticks.x = element_line(size = 1),
+        axis.ticks.y = element_line(size = 0.08),
+        axis.text.y = element_text(colour="grey8",size=4,angle=0,hjust=0,vjust=0,face="plain"),  
+        axis.title.x = element_text(colour="grey20",size=11,angle=0,hjust=.5,vjust=0,face="plain"),
+        axis.title.y = element_text(colour="grey20",size=11,angle=90,hjust=.5,vjust=.5,face="plain"))
+
+plot_1
+setwd("C:/Users/robert/Dropbox/PSU postdoc/Effect of religiosity on kin network density/Figures/SM figures/")
+library(bayesplot)
+library("rstan")
+ggsave(plot_1, filename = "C:/Users/robert/Dropbox/PSU postdoc/Effect of religiosity on kin network density/Figures/SM figures/Trace_plot_2.png", 
+       width = 10, height = 12, device = "png", 
+       dpi = 600,units = "in")
+
+#### next one
+M1 <- readRDS("C:/Users/robert/Dropbox/Github/Kin_networks_Bangladesh/results/non_relatives_in_NW_neg_bin.rds")
+posterior <- as.array(M1)
+dim(posterior)
+dimnames(posterior)
+
+posterior <- posterior[1:4000, 1:4, 1:9]
+dimnames(posterior)$parameters <- c("Int","Kids\nin\nHH","Sibs","Religion",
+                                    "Religiosity","Religious\nKnowledge","MI\nGeographic","MI\nEcon\nCapital",
+                                    "MI\nHum\nCapital")
+color_scheme_set("blue")
+
+p1 <- mcmc_trace(posterior, pars = c("Int","Kids\nin\nHH","Sibs","Religion",
+                                     "Religiosity","Religious\nKnowledge","MI\nGeographic","MI\nEcon\nCapital",
+                                     "MI\nHum\nCapital"), 
+                 facet_args = list(ncol = 1, strip.position = "left"))
+
+
+plot_1<- p1 + 
+  
+  ggtitle("Trace Plots for Number of Non-Relatives in Social Network")+
+  theme(axis.text.x = element_text(colour="black",size=10,angle=0,face="plain"),
+        axis.ticks.x = element_line(size = 1),
+        axis.ticks.y = element_line(size = 0.08),
+        axis.text.y = element_text(colour="grey8",size=4,angle=0,hjust=0,vjust=0,face="plain"),  
+        axis.title.x = element_text(colour="grey20",size=11,angle=0,hjust=.5,vjust=0,face="plain"),
+        axis.title.y = element_text(colour="grey20",size=11,angle=90,hjust=.5,vjust=.5,face="plain"))
+
+plot_1
+setwd("C:/Users/robert/Dropbox/PSU postdoc/Effect of religiosity on kin network density/Figures/SM figures/")
+library(bayesplot)
+library("rstan")
+ggsave(plot_1, filename = "C:/Users/robert/Dropbox/PSU postdoc/Effect of religiosity on kin network density/Figures/SM figures/Trace_plot_3.png", 
+       width = 10, height = 12, device = "png", 
+       dpi = 600,units = "in")
+
+#### next one
+M1 <- readRDS("C:/Users/robert/Dropbox/Github/Kin_networks_Bangladesh/results/percent_relatives_in_NW_lognormal.rds")
+posterior <- as.array(M1)
+dim(posterior)
+dimnames(posterior)
+
+posterior <- posterior[1:4000, 1:4, 1:9]
+dimnames(posterior)$parameters <- c("Int","Kids\nin\nHH","Sibs","Religion",
+                                    "Religiosity","Religious\nKnowledge","MI\nGeographic","MI\nEcon\nCapital",
+                                    "MI\nHum\nCapital")
+color_scheme_set("blue")
+
+p1 <- mcmc_trace(posterior, pars = c("Int","Kids\nin\nHH","Sibs","Religion",
+                                     "Religiosity","Religious\nKnowledge","MI\nGeographic","MI\nEcon\nCapital",
+                                     "MI\nHum\nCapital"), 
+                 facet_args = list(ncol = 1, strip.position = "left"))
+
+
+plot_1<- p1 + 
+  
+  ggtitle("Trace Plots for Number of Percentage of Relatives in Social Network")+
+  theme(axis.text.x = element_text(colour="black",size=10,angle=0,face="plain"),
+        axis.ticks.x = element_line(size = 1),
+        axis.ticks.y = element_line(size = 0.08),
+        axis.text.y = element_text(colour="grey8",size=4,angle=0,hjust=0,vjust=0,face="plain"),  
+        axis.title.x = element_text(colour="grey20",size=11,angle=0,hjust=.5,vjust=0,face="plain"),
+        axis.title.y = element_text(colour="grey20",size=11,angle=90,hjust=.5,vjust=.5,face="plain"))
+
+plot_1
+setwd("C:/Users/robert/Dropbox/PSU postdoc/Effect of religiosity on kin network density/Figures/SM figures/")
+library(bayesplot)
+library("rstan")
+ggsave(plot_1, filename = "C:/Users/robert/Dropbox/PSU postdoc/Effect of religiosity on kin network density/Figures/SM figures/Trace_plot_4.png", 
+       width = 10, height = 12, device = "png", 
+       dpi = 600,units = "in")
+
+#### next one
+M1 <- readRDS("C:/Users/robert/Dropbox/Github/Kin_networks_Bangladesh/results/Geo_distance_relatives_ord_cum.rds")
+posterior <- as.array(M1)
+dim(posterior)
+dimnames(posterior)
+
+posterior <- posterior[1:4000, 1:4, 1:9]
+dimnames(posterior)$parameters <- c("Int","Kids\nin\nHH","Sibs","Religion",
+                                    "Religiosity","Religious\nKnowledge","MI\nGeographic","MI\nEcon\nCapital",
+                                    "MI\nHum\nCapital")
+color_scheme_set("blue")
+
+p1 <- mcmc_trace(posterior, pars = c("Int","Kids\nin\nHH","Sibs","Religion",
+                                     "Religiosity","Religious\nKnowledge","MI\nGeographic","MI\nEcon\nCapital",
+                                     "MI\nHum\nCapital"), 
+                 facet_args = list(ncol = 1, strip.position = "left"))
+
+
+plot_1<- p1 + 
+  
+  ggtitle("Trace Plots for Geographic Distance of Relatives in Social Network")+
+  theme(axis.text.x = element_text(colour="black",size=10,angle=0,face="plain"),
+        axis.ticks.x = element_line(size = 1),
+        axis.ticks.y = element_line(size = 0.08),
+        axis.text.y = element_text(colour="grey8",size=4,angle=0,hjust=0,vjust=0,face="plain"),  
+        axis.title.x = element_text(colour="grey20",size=11,angle=0,hjust=.5,vjust=0,face="plain"),
+        axis.title.y = element_text(colour="grey20",size=11,angle=90,hjust=.5,vjust=.5,face="plain"))
+
+plot_1
+setwd("C:/Users/robert/Dropbox/PSU postdoc/Effect of religiosity on kin network density/Figures/SM figures/")
+library(bayesplot)
+library("rstan")
+ggsave(plot_1, filename = "C:/Users/robert/Dropbox/PSU postdoc/Effect of religiosity on kin network density/Figures/SM figures/Trace_plot_5.png", 
+       width = 10, height = 12, device = "png", 
+       dpi = 600,units = "in")
+
+#### next one
+M1 <- readRDS("C:/Users/robert/Dropbox/Github/Kin_networks_Bangladesh/results/Geo_distance_non_relatives_ord_cum.rds")
+
+posterior <- as.array(M1)
+dim(posterior)
+dimnames(posterior)
+
+posterior <- posterior[1:4000, 1:4, 1:9]
+dimnames(posterior)$parameters <- c("Int","Kids\nin\nHH","Sibs","Religion",
+                                    "Religiosity","Religious\nKnowledge","MI\nGeographic","MI\nEcon\nCapital",
+                                    "MI\nHum\nCapital")
+color_scheme_set("blue")
+
+p1 <- mcmc_trace(posterior, pars = c("Int","Kids\nin\nHH","Sibs","Religion",
+                                     "Religiosity","Religious\nKnowledge","MI\nGeographic","MI\nEcon\nCapital",
+                                     "MI\nHum\nCapital"), 
+                 facet_args = list(ncol = 1, strip.position = "left"))
+
+
+plot_1<- p1 + 
+  
+  ggtitle("Trace Plots for Geographic Distance of Non-Relatives in Social Network")+
+  theme(axis.text.x = element_text(colour="black",size=10,angle=0,face="plain"),
+        axis.ticks.x = element_line(size = 1),
+        axis.ticks.y = element_line(size = 0.08),
+        axis.text.y = element_text(colour="grey8",size=4,angle=0,hjust=0,vjust=0,face="plain"),  
+        axis.title.x = element_text(colour="grey20",size=11,angle=0,hjust=.5,vjust=0,face="plain"),
+        axis.title.y = element_text(colour="grey20",size=11,angle=90,hjust=.5,vjust=.5,face="plain"))
+
+plot_1
+setwd("C:/Users/robert/Dropbox/PSU postdoc/Effect of religiosity on kin network density/Figures/SM figures/")
+library(bayesplot)
+library("rstan")
+ggsave(plot_1, filename = "C:/Users/robert/Dropbox/PSU postdoc/Effect of religiosity on kin network density/Figures/SM figures/Trace_plot_6.png", 
+       width = 10, height = 12, device = "png", 
+       dpi = 600,units = "in")
+# Next one
+M1 <- readRDS("C:/Users/robert/Dropbox/Github/Kin_networks_Bangladesh/results/rels_econ_help_poisson.rds")
+
+posterior <- as.array(M1)
+dim(posterior)
+dimnames(posterior)
+
+posterior <- posterior[1:4000, 1:4, 1:9]
+dimnames(posterior)$parameters <- c("Int","Kids\nin\nHH","Sibs","Religion",
+                                    "Religiosity","Religious\nKnowledge","MI\nGeographic","MI\nEcon\nCapital",
+                                    "MI\nHum\nCapital")
+color_scheme_set("blue")
+
+p1 <- mcmc_trace(posterior, pars = c("Int","Kids\nin\nHH","Sibs","Religion",
+                                     "Religiosity","Religious\nKnowledge","MI\nGeographic","MI\nEcon\nCapital",
+                                     "MI\nHum\nCapital"), 
+                 facet_args = list(ncol = 1, strip.position = "left"))
+
+
+plot_1<- p1 + 
+  
+  ggtitle("Trace Plots for Number of Relatives in Social Network Providing Financial Help")+
+  theme(axis.text.x = element_text(colour="black",size=10,angle=0,face="plain"),
+        axis.ticks.x = element_line(size = 1),
+        axis.ticks.y = element_line(size = 0.08),
+        axis.text.y = element_text(colour="grey8",size=4,angle=0,hjust=0,vjust=0,face="plain"),  
+        axis.title.x = element_text(colour="grey20",size=11,angle=0,hjust=.5,vjust=0,face="plain"),
+        axis.title.y = element_text(colour="grey20",size=11,angle=90,hjust=.5,vjust=.5,face="plain"))
+
+plot_1
+setwd("C:/Users/robert/Dropbox/PSU postdoc/Effect of religiosity on kin network density/Figures/SM figures/")
+library(bayesplot)
+library("rstan")
+ggsave(plot_1, filename = "C:/Users/robert/Dropbox/PSU postdoc/Effect of religiosity on kin network density/Figures/SM figures/Trace_plot_7.png", 
+       width = 10, height = 12, device = "png", 
+       dpi = 600,units = "in")
+
+# Next one
+M1 <- readRDS("C:/Users/robert/Dropbox/Github/Kin_networks_Bangladesh/results/childcare_help_rels_neg_binom.rds")
+posterior <- as.array(M1)
+dim(posterior)
+dimnames(posterior)
+
+posterior <- posterior[1:4000, 1:4, 1:9]
+dimnames(posterior)$parameters <- c("Int","Kids\nin\nHH","Sibs","Religion",
+                                    "Religiosity","Religious\nKnowledge","MI\nGeographic","MI\nEcon\nCapital",
+                                    "MI\nHum\nCapital")
+color_scheme_set("blue")
+
+p1 <- mcmc_trace(posterior, pars = c("Int","Kids\nin\nHH","Sibs","Religion",
+                                     "Religiosity","Religious\nKnowledge","MI\nGeographic","MI\nEcon\nCapital",
+                                     "MI\nHum\nCapital"), 
+                 facet_args = list(ncol = 1, strip.position = "left"))
+
+
+plot_1<- p1 + 
+  
+  ggtitle("Trace Plots for Number of Relatives in Social Network Providing Help with Childcare")+
+  theme(axis.text.x = element_text(colour="black",size=10,angle=0,face="plain"),
+        axis.ticks.x = element_line(size = 1),
+        axis.ticks.y = element_line(size = 0.08),
+        axis.text.y = element_text(colour="grey8",size=4,angle=0,hjust=0,vjust=0,face="plain"),  
+        axis.title.x = element_text(colour="grey20",size=11,angle=0,hjust=.5,vjust=0,face="plain"),
+        axis.title.y = element_text(colour="grey20",size=11,angle=90,hjust=.5,vjust=.5,face="plain"))
+
+plot_1
+setwd("C:/Users/robert/Dropbox/PSU postdoc/Effect of religiosity on kin network density/Figures/SM figures/")
+library(bayesplot)
+library("rstan")
+ggsave(plot_1, filename = "C:/Users/robert/Dropbox/PSU postdoc/Effect of religiosity on kin network density/Figures/SM figures/Trace_plot_8.png", 
+       width = 10, height = 12, device = "png", 
+       dpi = 600,units = "in")
+
+# Next one
+M1 <- readRDS("C:/Users/robert/Dropbox/Github/Kin_networks_Bangladesh/results/rels_emot_support_poisson.rds")
+
+posterior <- as.array(M1)
+dim(posterior)
+dimnames(posterior)
+
+posterior <- posterior[1:4000, 1:4, 1:9]
+dimnames(posterior)$parameters <- c("Int","Kids\nin\nHH","Sibs","Religion",
+                                    "Religiosity","Religious\nKnowledge","MI\nGeographic","MI\nEcon\nCapital",
+                                    "MI\nHum\nCapital")
+color_scheme_set("blue")
+
+p1 <- mcmc_trace(posterior, pars = c("Int","Kids\nin\nHH","Sibs","Religion",
+                                     "Religiosity","Religious\nKnowledge","MI\nGeographic","MI\nEcon\nCapital",
+                                     "MI\nHum\nCapital"), 
+                 facet_args = list(ncol = 1, strip.position = "left"))
+
+
+plot_1<- p1 + 
+  
+  ggtitle("Trace Plots for Number of Relatives in Social Network Providing Emotional Support")+
+  theme(axis.text.x = element_text(colour="black",size=10,angle=0,face="plain"),
+        axis.ticks.x = element_line(size = 1),
+        axis.ticks.y = element_line(size = 0.08),
+        axis.text.y = element_text(colour="grey8",size=4,angle=0,hjust=0,vjust=0,face="plain"),  
+        axis.title.x = element_text(colour="grey20",size=11,angle=0,hjust=.5,vjust=0,face="plain"),
+        axis.title.y = element_text(colour="grey20",size=11,angle=90,hjust=.5,vjust=.5,face="plain"))
+
+plot_1
+setwd("C:/Users/robert/Dropbox/PSU postdoc/Effect of religiosity on kin network density/Figures/SM figures/")
+library(bayesplot)
+library("rstan")
+ggsave(plot_1, filename = "C:/Users/robert/Dropbox/PSU postdoc/Effect of religiosity on kin network density/Figures/SM figures/Trace_plot_9.png", 
+       width = 10, height = 12, device = "png", 
+       dpi = 600,units = "in")
+
+
+
 # # Plot the PP checks for key models
-# ####HERE!!!!!
-# # pp <- predict(M1)
-# # 
-# # 
-# # predict(M1, newdata = newdata)
+# ## posterior predictive checks
+# pp <- predict(fit)
+# head(pp)
+
+library(ggplot2)
+M1 <- readRDS("C:/Users/robert/Dropbox/Github/Kin_networks_Bangladesh/results/NW_total_lognormal.rds")
+# posterior <- as.array(M1)
+# dim(posterior)
+# dimnames(posterior)
 # 
-# 
-# 
-# 
-# ## try to write a function that does all the stuff above but takes a new model each time!!!
-# # 
-# # mcmc_areas(posterior, pars = c("b_Intercept","b_kids_in_hh","b_age_wife",                
-# #                                "b_religion","b_familyBariReligiousAfter","b_religious_knowledge_scale",
-# #                                "b_MI_geo_proximity","b_MI_economic_capital","b_MI_human_capital"),
-# #            prob=0.8,
-# #            prob_outer = 0.99,
-# #            point_est = "median")
-# # 
-# # mcmc_areas(result, pars = c("b_familyBariReligiousAfter","b_religion"))
-# # 
-# # 
-# # 
-# # posterior1 <- posterior[, , 5]
-# # posterior2 <- posterior[, , 4]
-# # 
-# # result <- array(c(posterior1,posterior2),dim=c(1000,4,2))
-# # 
-# # vector1 <- posterior[, , 5]
-# # vector2 <- posterior[, , 4]
-# # column.names <- c("chain:1","chain:2","chain:3","chain:4")
-# # row.names <- NULL
-# # matrix.names <- c("b_familyBariReligiousAfter","b_religion")
-# # 
-# # # Take these vectors as input to the array.
-# # result <- array(c(vector1,vector2),dim = c(1000,4,2),dimnames = list(row.names,column.names,
-# #                                                                      matrix.names))
-# # dimnames(result)[[1]] <- "iterations"
-# # 
-# # dimnames(ar)[[3]] <- c("G", "H", "I")
-# # 
-# # mcmc_areas(
-# #   result, 
-# #   pars = pars = c("b_Intercept","b_kids_in_hh","b_age_wife",                
-# #                   "b_religion","b_familyBariReligiousAfter","b_religious_knowledge_scale",
-# #                   "b_MI_geo_proximity","b_MI_economic_capital","b_MI_human_capital"),
-# #   prob = 0.8, 
-# #   prob_outer = 0.99, 
-# #   point_est = "median")               
-# # 
-# # 
-# # "b_familyBariReligiousAfter" "b_religion"
-# # 
-# # #### posterior predictive checks
+# posterior <- posterior[1:4000, 1:4, 1:9]
+# dimnames(posterior)$parameters <- c("Int","Kids\nin\nHH","Sibs","Religion",
+#                                     "Religiosity","Religious\nKnowledge","MI\nGeographic","MI\nEcon\nCapital",
+#                                     "MI\nHum\nCapital")
+
+# get correlation
+# get the predictions
+# a <- posterior_predict(M1)
+# a <- as.data.frame(a)
+# a <- apply(a,2,mean) %>% as.data.frame()
+# # get the original dataframe (p)
+library(dplyr)
+library(rstanarm)
+# path to the folder with the R data files
+library(tidyverse)
+library(brms)
+library(readr)
+#####READ in and filter newdata
+setwd("C:/Users/robert/Dropbox/Github/Kin_networks_Bangladesh")
+newdata <- read_csv("newdata.csv")
+options(scipen=999)
+
+mean(newdata$NW_total,na.rm=T)
+#10.30184
+
+library(bayesplot)
+
+color_scheme_set('purple')
+
+p1 <- pp_check(M1, type = "stat")+  
+ 
+  ggtitle("Posterior Predictive Check\nNumber of Relatives in Network")+
+  scale_x_continuous(name="Predicted", limits=c(9.75,11.25),
+  breaks=c(10,10.25,10.50,10.75,11.00),
+  labels=c('10','10.25','10.5','10.75','11')) +
+  
+  theme(axis.text.x = element_text(colour="black",size=10,angle=0,face="plain"),
+        axis.ticks.x = element_line(size = 1),
+        legend.position="none",
+        axis.text.y = element_text(colour="grey8",size=10,angle=0,hjust=0,vjust=0,face="plain"),  
+        axis.title.x = element_text(colour="grey20",size=11,angle=0,hjust=.5,vjust=0,face="plain"),
+        axis.title.y = element_text(colour="grey20",size=11,angle=90,hjust=.5,vjust=.5,face="plain"),
+        plot.title = element_text(hjust = 0.5))+
+  # mean(z$observed)
+  annotate("text", x = 10.0, y = 1200, label = "Mean observed\n10.30", colour="darkgrey")
+  
+p1
+
+setwd("C:/Users/robert/Dropbox/PSU postdoc/Effect of religiosity on kin network density/Figures/SM figures")
+
+ggsave(p1, filename = "PPC1.png", width = 9, height = 7, device = "png", dpi = 600,units = "in")
+ggsave(p1, filename = "PPC1.pdf", width = 9, height = 7, device = "pdf", dpi = 600,units = "in")
+
+
+## next one  (9 in total)
+M1 <- readRDS("C:/Users/robert/Dropbox/Github/Kin_networks_Bangladesh/results/relatives_in_NW_lognormal.rds")
+
+library(bayesplot)
+library(ggplot2)
+
+names(newdata)
+mean(newdata$rels_in_NW,na.rm=T)
+#9.253281
+
+color_scheme_set('purple')
+
+p1 <- pp_check(M1, type = "stat")+scale_x_continuous(name="Predicted", limits=c(8.75,10.25),
+                                                     breaks=c(9,9.25,9.50,9.75,10.00),
+                                                     labels=c('9','9.25','9.5','9.75','10')) +
+  
+  ggtitle("Posterior Predictive Check\nNumber of Relatives in Network")+
+  
+  theme(axis.text.x = element_text(colour="black",size=10,angle=0,face="plain"),
+        axis.ticks.x = element_line(size = 1),
+        legend.position="none",
+        axis.text.y = element_text(colour="grey8",size=10,angle=0,hjust=0,vjust=0,face="plain"),  
+        axis.title.x = element_text(colour="grey20",size=11,angle=0,hjust=.5,vjust=0,face="plain"),
+        axis.title.y = element_text(colour="grey20",size=11,angle=90,hjust=.5,vjust=.5,face="plain"),
+        plot.title = element_text(hjust = 0.5))+
+  # mean(z$observed)
+  annotate("text", x = 9, y = 1200, label = "Mean observed\n9.25", colour="darkgrey")
+
+p1
+
+setwd("C:/Users/robert/Dropbox/PSU postdoc/Effect of religiosity on kin network density/Figures/SM figures")
+
+ggsave(p1, filename = "PPC2.png", width = 9, height = 7, device = "png", dpi = 600,units = "in")
+ggsave(p1, filename = "PPC2.pdf", width = 9, height = 7, device = "pdf", dpi = 600,units = "in")
+
+
+
+## next one  (3rd)
+M1 <- readRDS("C:/Users/robert/Dropbox/Github/Kin_networks_Bangladesh/results/non_relatives_in_NW_neg_bin.rds")
+
+library(bayesplot)
+library(ggplot2)
+
+names(newdata)
+mean(newdata$non_rels,na.rm=T)
+#1.048556
+
+color_scheme_set('purple')
+
+p1 <- pp_check(M1, type = "stat")+scale_x_continuous(name="Predicted", limits=c(0.8,1.35),
+                                                     breaks=c(0.9,1.0,1.1,1.2,1.3),
+                                                     labels=c('0.9','1.0','1.1','1.2','1.3')) +
+  
+  ggtitle("Posterior Predictive Check\nNumber of Non-Relatives in Network")+
+  
+  theme(axis.text.x = element_text(colour="black",size=10,angle=0,face="plain"),
+        axis.ticks.x = element_line(size = 1),
+        legend.position="none",
+        axis.text.y = element_text(colour="grey8",size=10,angle=0,hjust=0,vjust=0,face="plain"),  
+        axis.title.x = element_text(colour="grey20",size=11,angle=0,hjust=.5,vjust=0,face="plain"),
+        axis.title.y = element_text(colour="grey20",size=11,angle=90,hjust=.5,vjust=.5,face="plain"),
+        plot.title = element_text(hjust = 0.5))+
+  # mean(z$observed)
+  annotate("text", x = 0.9, y = 1200, label = "Mean observed\n1.04", colour="darkgrey")
+
+p1
+
+setwd("C:/Users/robert/Dropbox/PSU postdoc/Effect of religiosity on kin network density/Figures/SM figures")
+
+ggsave(p1, filename = "PPC3.png", width = 9, height = 7, device = "png", dpi = 600,units = "in")
+ggsave(p1, filename = "PPC3.pdf", width = 9, height = 7, device = "pdf", dpi = 600,units = "in")
+
+## next one  (4th)
+M1 <- readRDS("C:/Users/robert/Dropbox/Github/Kin_networks_Bangladesh/results/percent_relatives_in_NW_lognormal.rds")
+
+library(bayesplot)
+library(ggplot2)
+
+names(newdata)
+mean(newdata$percent_rels_in_NW,na.rm=T)
+#0.8341017
+
+color_scheme_set('purple')
+
+p1 <- pp_check(M1, type = "stat")+scale_x_continuous(name="Predicted", limits=c(0.82,0.88),
+                                                     breaks=c(0.83,0.84,0.85,0.86,0.87),
+                                                     labels=c('83%','84%','85%','86%','87%')) +
+  
+  ggtitle("Posterior Predictive Check\nPercentage of Relatives in Network")+
+  
+  theme(axis.text.x = element_text(colour="black",size=10,angle=0,face="plain"),
+        axis.ticks.x = element_line(size = 1),
+        legend.position="none",
+        axis.text.y = element_text(colour="grey8",size=10,angle=0,hjust=0,vjust=0,face="plain"),  
+        axis.title.x = element_text(colour="grey20",size=11,angle=0,hjust=.5,vjust=0,face="plain"),
+        axis.title.y = element_text(colour="grey20",size=11,angle=90,hjust=.5,vjust=.5,face="plain"),
+        plot.title = element_text(hjust = 0.5))+
+  # mean(z$observed)
+  annotate("text", x = 0.838, y = 1100, label = "Mean observed\n84.4%", colour="darkgrey")
+
+p1
+
+setwd("C:/Users/robert/Dropbox/PSU postdoc/Effect of religiosity on kin network density/Figures/SM figures")
+
+ggsave(p1, filename = "PPC4.png", width = 9, height = 7, device = "png", dpi = 600,units = "in")
+ggsave(p1, filename = "PPC4.pdf", width = 9, height = 7, device = "pdf", dpi = 600,units = "in")
+
+### next one - number 5
+M1 <- readRDS("C:/Users/robert/Dropbox/Github/Kin_networks_Bangladesh/results/Geo_distance_relatives_ord_cum.rds")
+
+#mean(newdata$NW_total,na.rm=T)
+#2.175
+
+library(bayesplot)
+
+color_scheme_set('purple')
+
+p1 <- pp_check(M1, type = "stat")+  
+  
+  ggtitle("Posterior Predictive Check\nGeographic distance of Relatives in Network")+
+  scale_x_continuous(name="Predicted", limits=c(2.10,2.25),
+                     breaks=c(2.15,2.20,2.25),
+                     labels=c('2.15','2.20','2.25')) +
+  
+  theme(axis.text.x = element_text(colour="black",size=10,angle=0,face="plain"),
+        axis.ticks.x = element_line(size = 1),
+        legend.position="none",
+        axis.text.y = element_text(colour="grey8",size=10,angle=0,hjust=0,vjust=0,face="plain"),  
+        axis.title.x = element_text(colour="grey20",size=11,angle=0,hjust=.5,vjust=0,face="plain"),
+        axis.title.y = element_text(colour="grey20",size=11,angle=90,hjust=.5,vjust=.5,face="plain"),
+        plot.title = element_text(hjust = 0.5))+
+  # mean(z$observed)
+  annotate("text", x = 2.13, y = 1200, label = "Mean observed\n2.175", colour="darkgrey")
+
+p1
+
+setwd("C:/Users/robert/Dropbox/PSU postdoc/Effect of religiosity on kin network density/Figures/SM figures")
+
+ggsave(p1, filename = "PPC5.png", width = 9, height = 7, device = "png", dpi = 600,units = "in")
+ggsave(p1, filename = "PPC5.pdf", width = 9, height = 7, device = "pdf", dpi = 600,units = "in")
+
+## next one number 6
+M1 <- readRDS("C:/Users/robert/Dropbox/Github/Kin_networks_Bangladesh/results/Geo_distance_non_relatives_ord_cum.rds")
+
+#mean(newdata$NW_total,na.rm=T)
+
+
+library(bayesplot)
+
+color_scheme_set('purple')
+
+p1 <- pp_check(M1, type = "stat")+  
+  
+  ggtitle("Posterior Predictive Check\nGeographic distance of Non-relatives in Network")+
+  
+  scale_x_continuous(name="Predicted", limits=c(2.10,2.32),
+                     breaks=c(2.15,2.20,2.25,2.30),
+                     labels=c('2.15','2.20','2.25','2.30'))+
+  
+  theme(axis.text.x = element_text(colour="black",size=10,angle=0,face="plain"),
+        axis.ticks.x = element_line(size = 1),
+        legend.position="none",
+        axis.text.y = element_text(colour="grey8",size=10,angle=0,hjust=0,vjust=0,face="plain"),  
+        axis.title.x = element_text(colour="grey20",size=11,angle=0,hjust=.5,vjust=0,face="plain"),
+        axis.title.y = element_text(colour="grey20",size=11,angle=90,hjust=.5,vjust=.5,face="plain"),
+        plot.title = element_text(hjust = 0.5))+
+  # mean(z$observed)
+  annotate("text", x = 2.17, y = 1200, label = "Mean observed\n2.22", colour="darkgrey")
+
+p1
+
+setwd("C:/Users/robert/Dropbox/PSU postdoc/Effect of religiosity on kin network density/Figures/SM figures")
+
+ggsave(p1, filename = "PPC6.png", width = 9, height = 7, device = "png", dpi = 600,units = "in")
+ggsave(p1, filename = "PPC6.pdf", width = 9, height = 7, device = "pdf", dpi = 600,units = "in")
+## next one number 7
+M1 <- readRDS("C:/Users/robert/Dropbox/Github/Kin_networks_Bangladesh/results/rels_econ_help_poisson.rds")
+
+mean(newdata$rels_econ_help,na.rm=T)
+#3.226722
+
+library(bayesplot)
+
+color_scheme_set('purple')
+
+p1 <- pp_check(M1, type = "stat")+  
+  
+  ggtitle("Posterior Predictive Check\nNumber of relatives helping financially")+
+  scale_x_continuous(name="Predicted", limits=c(2.8,3.5),
+                     breaks=c(2.9,3.0,3.1,3.2,3.3,3.4),
+                     labels=c('2.9','3.0','3.1','3.2','3.3','3.4')) +
+  
+  theme(axis.text.x = element_text(colour="black",size=10,angle=0,face="plain"),
+        axis.ticks.x = element_line(size = 1),
+        legend.position="none",
+        axis.text.y = element_text(colour="grey8",size=10,angle=0,hjust=0,vjust=0,face="plain"),  
+        axis.title.x = element_text(colour="grey20",size=11,angle=0,hjust=.5,vjust=0,face="plain"),
+        axis.title.y = element_text(colour="grey20",size=11,angle=90,hjust=.5,vjust=.5,face="plain"),
+        plot.title = element_text(hjust = 0.5))+
+  # mean(z$observed)
+  annotate("text", x = 2.95, y = 1200, label = "Mean observed\n3.23", colour="darkgrey")
+
+p1
+
+setwd("C:/Users/robert/Dropbox/PSU postdoc/Effect of religiosity on kin network density/Figures/SM figures")
+
+ggsave(p1, filename = "PPC7.png", width = 9, height = 7, device = "png", dpi = 600,units = "in")
+ggsave(p1, filename = "PPC7.pdf", width = 9, height = 7, device = "pdf", dpi = 600,units = "in")
+## next one number 8
+M1 <- readRDS("C:/Users/robert/Dropbox/Github/Kin_networks_Bangladesh/results/childcare_help_rels_neg_binom.rds")
+
+mean(newdata$childcare_help_rels,na.rm=T)
+#3.350081
+
+library(bayesplot)
+
+color_scheme_set('purple')
+
+p1 <- pp_check(M1, type = "stat")+  
+  
+  ggtitle("Posterior Predictive Check\nNumber of relatives helping with childcare")+
+  scale_x_continuous(name="Predicted", limits=c(3,3.7),
+                     breaks=c(3.1,3.2,3.3,3.4,3.5,3.6),
+                     labels=c('3.1','3.2','3.3','3.4','3.5','3.6')) +
+  
+  theme(axis.text.x = element_text(colour="black",size=10,angle=0,face="plain"),
+        axis.ticks.x = element_line(size = 1),
+        legend.position="none",
+        axis.text.y = element_text(colour="grey8",size=10,angle=0,hjust=0,vjust=0,face="plain"),  
+        axis.title.x = element_text(colour="grey20",size=11,angle=0,hjust=.5,vjust=0,face="plain"),
+        axis.title.y = element_text(colour="grey20",size=11,angle=90,hjust=.5,vjust=.5,face="plain"),
+        plot.title = element_text(hjust = 0.5))+
+  # mean(z$observed)
+  annotate("text", x = 3.2, y = 1200, label = "Mean observed\n3.35", colour="darkgrey")
+
+p1
+
+setwd("C:/Users/robert/Dropbox/PSU postdoc/Effect of religiosity on kin network density/Figures/SM figures")
+
+ggsave(p1, filename = "PPC8.png", width = 9, height = 7, device = "png", dpi = 600,units = "in")
+ggsave(p1, filename = "PPC8.pdf", width = 9, height = 7, device = "pdf", dpi = 600,units = "in")
+
+## next one number 9
+M1 <- readRDS("C:/Users/robert/Dropbox/Github/Kin_networks_Bangladesh/results/rels_emot_support_poisson.rds")
+mean(newdata$emot_support_rels,na.rm=T)
+# 5.985252
+
+library(bayesplot)
+
+color_scheme_set('purple')
+
+p1 <- pp_check(M1, type = "stat")+  
+  
+  ggtitle("Posterior Predictive Check\nNumber of relatives providing emotional support")+
+  scale_x_continuous(name="Predicted", limits=c(5.6,6.35),
+                     breaks=c(5.7,5.8,5.9,6.0,6.1,6.2),
+                     labels=c('5.7','5.8','5.9','6.0','6.1','6.2')) +
+  
+  theme(axis.text.x = element_text(colour="black",size=10,angle=0,face="plain"),
+        axis.ticks.x = element_line(size = 1),
+        legend.position="none",
+        axis.text.y = element_text(colour="grey8",size=10,angle=0,hjust=0,vjust=0,face="plain"),  
+        axis.title.x = element_text(colour="grey20",size=11,angle=0,hjust=.5,vjust=0,face="plain"),
+        axis.title.y = element_text(colour="grey20",size=11,angle=90,hjust=.5,vjust=.5,face="plain"),
+        plot.title = element_text(hjust = 0.5))+
+  # mean(z$observed)
+  annotate("text", x = 5.8, y = 1100, label = "Mean observed\n5.98", colour="darkgrey")
+
+p1
+
+setwd("C:/Users/robert/Dropbox/PSU postdoc/Effect of religiosity on kin network density/Figures/SM figures")
+
+ggsave(p1, filename = "PPC9.png", width = 9, height = 7, device = "png", dpi = 600,units = "in")
+ggsave(p1, filename = "PPC9.pdf", width = 9, height = 7, device = "pdf", dpi = 600,units = "in")

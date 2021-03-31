@@ -1,5 +1,4 @@
-
-########################################################################################
+#######################################################################################
 ########################################################################################
 #DO THIS FIRST READ IN DATA
 ########################################################################################
@@ -14,12 +13,7 @@ library(readr)
 setwd("C:/Users/robert/Dropbox/Github/Kin_networks_Bangladesh")
 newdata <- read_csv("newdata.csv")
 options(scipen=999)
-# remove duplicated women
-newdata <- newdata %>% distinct(idwife, .keep_all = TRUE)
-# 1) center and scale variables for easier interpretability fo parameter estimates
-newdata$religious_knowledge_scale <-  newdata$religious_knowledge_scale-mean(newdata$religious_knowledge_scale, na.rm=T)
-newdata$hh_total  <- newdata$hh_total-mean(newdata$hh_total, na.rm=T)  
-newdata$kids_in_hh  <- newdata$kids_in_hh-mean(newdata$kids_in_hh, na.rm=T)
+
 
 ########################################################################################
 ########################################################################################
@@ -27,24 +21,22 @@ newdata$kids_in_hh  <- newdata$kids_in_hh-mean(newdata$kids_in_hh, na.rm=T)
 ########################################################################################
 ########################################################################################
 ## Brms models - Model 1 NW total
-d <- newdata[c(10,47,5,7,8,9,44,45,49)] 
+d <- newdata[c(10,47,5,7,8,9,44,45,49,51)] 
 
 d <- d[complete.cases(d), ]  
 
 hist(d$NW_total)
-library(fitdistrplus)
-library(logspline)
-descdist(d$NW_total, discrete = TRUE, boot=500)
+
 
 
 d$NW_total <- as.numeric(d$NW_total)
 ### try model
-model1 <- brm(NW_total ~ kids_in_hh+
-                age_wife+religion+familyBariReligiousAfter+religious_knowledge_scale+
+model1 <- brm(NW_total ~ (1|kids_in_hh)+(1|R_NUM_SIBS)+
+                religion+familyBariReligiousAfter+religious_knowledge_scale+
                 MI_geo_proximity+
                 MI_economic_capital+
                 MI_human_capital, data=d, 
-                 family = lognormal(),
+              family = lognormal(),
               prior = c(set_prior("normal(0,2)", class = "b"),
                         set_prior("normal(0,10)", class="b",coef="age_wife")),
               warmup = 1000, iter = 5000, chains = 4,
@@ -92,15 +84,15 @@ library(tidyverse)
 library(brms)
 library(readr)
 
-d <- newdata[c(21,47,5,7,8,9,44,45,49)] 
+d <- newdata[c(21,47,5,7,8,9,44,45,49,51)] 
 d <- d[complete.cases(d), ] 
 hist(d$percent_rels_in_NW)
 d <- d[complete.cases(d), ]  
 
 d$percent_rels_in_NW<- d$percent_rels_in_NW+0.01
 ## run as log normal  
-model2 <- brm(percent_rels_in_NW ~ kids_in_hh+
-                age_wife+religion+familyBariReligiousAfter+religious_knowledge_scale+
+model2 <- brm(percent_rels_in_NW ~ (1|kids_in_hh)+(1|R_NUM_SIBS)+
+                religion+familyBariReligiousAfter+religious_knowledge_scale+
                 MI_geo_proximity+
                 MI_economic_capital+
                 MI_human_capital, data=d, 
@@ -155,27 +147,25 @@ library(brms)
 library(readr)
 
 
-d <- newdata[c(19,47,4,5,7,8,9,44,45,49)] 
+d <- newdata[c(19,47,4,5,7,8,9,44,45,49,51)] 
 d <- d[complete.cases(d), ] 
 
 hist(d$rels_in_NW) # log normal okay
 
-library(fitdistrplus)
-library(logspline)
-descdist(d$rels_in_NW, discrete = TRUE, boot=500)
+
 
 d$rels_in_NW<- d$rels_in_NW+0.01
 ## run as log normal  
-model2.1 <- brm(rels_in_NW ~ kids_in_hh+
-                 age_wife+religion+familyBariReligiousAfter+religious_knowledge_scale+
-                 MI_geo_proximity+
-                 MI_economic_capital+
-                 MI_human_capital, data=d, 
-               family = lognormal(),
-               prior = c(set_prior("normal(0,2)", class = "b"),
-                         set_prior("normal(0,10)", class="b",coef="age_wife")),
-               warmup = 1000, iter = 5000, chains = 4,
-               control = list(adapt_delta = 0.95))
+model2.1 <- brm(rels_in_NW ~ (1|kids_in_hh)+(1|R_NUM_SIBS)+
+                  religion+familyBariReligiousAfter+religious_knowledge_scale+
+                  MI_geo_proximity+
+                  MI_economic_capital+
+                  MI_human_capital, data=d, 
+                family = lognormal(),
+                prior = c(set_prior("normal(0,2)", class = "b"),
+                          set_prior("normal(0,10)", class="b",coef="age_wife")),
+                warmup = 1000, iter = 5000, chains = 4,
+                control = list(adapt_delta = 0.95))
 
 print(summary(model2.1, prob=0.95,priors=TRUE), digits = 6)
 
@@ -218,7 +208,7 @@ saveRDS(model2.1, paste0(path, filename))
 library(tidyverse)
 library(brms)
 library(readr)
-d <- newdata[c(11,47,4,5,7,8,9,44,45,49)] 
+d <- newdata[c(11,47,4,5,7,8,9,44,45,49,51)] 
 
 d <- d[complete.cases(d), ] 
 
@@ -228,16 +218,16 @@ library(logspline)
 descdist(d$non_rels, discrete = TRUE, boot=500)
 
 ## run as Negative bionomial
-model2.2 <- brm(non_rels ~ kids_in_hh+
-                 age_wife+religion+familyBariReligiousAfter+religious_knowledge_scale+
-                 MI_geo_proximity+
-                 MI_economic_capital+
-                 MI_human_capital, data=d, 
-               family = negbinomial(link = "log", link_shape = "identity"),
-               prior = c(set_prior("normal(0,2)", class = "b"),
-                         set_prior("normal(0,10)", class="b",coef="age_wife")),
-               warmup = 1000, iter = 5000, chains = 4,
-               control = list(adapt_delta = 0.95))
+model2.2 <- brm(non_rels ~(1|kids_in_hh)+(1|R_NUM_SIBS)+
+                  religion+familyBariReligiousAfter+religious_knowledge_scale+
+                  MI_geo_proximity+
+                  MI_economic_capital+
+                  MI_human_capital, data=d, 
+                family = negbinomial(link = "log", link_shape = "identity"),
+                prior = c(set_prior("normal(0,2)", class = "b"),
+                          set_prior("normal(0,10)", class="b",coef="age_wife")),
+                warmup = 1000, iter = 5000, chains = 4,
+                control = list(adapt_delta = 0.95))
 
 print(summary(model2.2, prob=0.95,priors=TRUE), digits = 6)
 
@@ -276,7 +266,7 @@ saveRDS(model2.2, paste0(path, filename))
 
 # Model 3.1 geo_distance_non_rels: + p=0.003268 ** 
 
-d <- newdata[c(17,11,47,4,5,7,8,9,44,45,49)] 
+d <- newdata[c(17,11,47,4,5,7,8,9,44,45,49,51)] 
 # missing alot here (WHY!!!) if you have no non rels in NW what is the geo distance to them?
 # because we are missing 571 here (NA's)
 # solution - make NA's max mean of geo_distance_non_rels which is 5
@@ -287,19 +277,18 @@ d$dummy_no_non_rels <- ifelse(d$non_rels==0,1,0)
 d$geo_distance_non_rels[is.na(d$geo_distance_non_rels)] <- 5
 d <- d[complete.cases(d), ] 
 
-hist(d$geo_distance_non_rels)
-descdist(d$geo_distance_non_rels, discrete = FALSE, boot=500)
 
 
-model3.1<-brm(geo_distance_non_rels ~ kids_in_hh+sex+dummy_no_non_rels+
-              age_wife+religion+familyBariReligiousAfter+religious_knowledge_scale+
-              MI_geo_proximity+
-              MI_economic_capital+
-              MI_human_capital, data=d, family = "lognormal",
-            prior = c(set_prior("normal(0,2)", class = "b"),
-                      set_prior("normal(0,10)", class="b",coef="age_wife")),
-            warmup = 1000, iter = 5000, chains = 4,
-            control = list(adapt_delta = 0.95))
+
+model3.1<-brm(geo_distance_non_rels ~ (1|kids_in_hh)+(1|R_NUM_SIBS)+dummy_no_non_rels+
+                religion+familyBariReligiousAfter+religious_knowledge_scale+
+                MI_geo_proximity+
+                MI_economic_capital+
+                MI_human_capital, data=d, family = "lognormal",
+              prior = c(set_prior("normal(0,2)", class = "b"),
+                        set_prior("normal(0,10)", class="b",coef="age_wife")),
+              warmup = 1000, iter = 5000, chains = 4,
+              control = list(adapt_delta = 0.95))
 
 print(summary(model3.1, prob=0.95,priors=TRUE), digits = 6)
 
@@ -342,16 +331,14 @@ saveRDS(model3.1, paste0(path, filename))
 
 
 # 3.2) geo_distance_rels:   + 0.00118 ** 
-d <- newdata[c(18,11,47,4,5,7,8,9,44,45,49)] 
+d <- newdata[c(18,11,47,4,5,7,8,9,44,45,49,51)] 
 d <- d[complete.cases(d), ] 
 hist(d$geo_distance_rels)
 
-library(fitdistrplus)
-library(logspline)
-descdist(d$geo_distance_rels, discrete = FALSE, boot=500)
 
-model3.2<-brm(geo_distance_rels ~ kids_in_hh+sex+
-                age_wife+religion+ familyBariReligiousAfter+religious_knowledge_scale+
+
+model3.2<-brm(geo_distance_rels ~ (1|kids_in_hh)+(1|R_NUM_SIBS)+
+                religion+ familyBariReligiousAfter+religious_knowledge_scale+
                 MI_geo_proximity+
                 MI_economic_capital+
                 MI_human_capital, data=d, family = "normal",
@@ -402,7 +389,7 @@ saveRDS(model3.2, paste0(path, filename))
 # MOdeling geo_distance of relatives and non relatives against religiosity
 
 #### Non rels first
-d <- newdata[c(1,5,7,8,9,11,19,44,45,47,49)] 
+d <- newdata[c(1,5,7,8,9,11,19,44,45,47,49,51)] 
 d <- d[complete.cases(d), ] 
 
 # read in wife NW
@@ -439,21 +426,17 @@ non_rels <- nr %>% left_join (d, by=c("id_Questionaire"="idwife"))
 non_rels <- non_rels[complete.cases(non_rels),]
 
 
-hist(non_rels$familyBariReligiousAfter)
-library(fitdistrplus)
-library(logspline)
-descdist(non_rels$familyBariReligiousAfter, discrete = TRUE, boot=500)
 
 non_rels$familyBariReligiousAfter<- as.numeric(non_rels$familyBariReligiousAfter)
 
 
-model3.1b<-brm(familyBariReligiousAfter ~ kids_in_hh+
-                 age_wife+religion+location +religious_knowledge_scale+
+model3.1b<-brm(familyBariReligiousAfter ~ (1|kids_in_hh)+(1|R_NUM_SIBS)+
+                 religion+location +religious_knowledge_scale+
                  MI_geo_proximity+
                  MI_economic_capital+
                  MI_human_capital, data=non_rels, family = "normal",
                prior = c(set_prior("normal(0,2)", class = "b"),
-                        # set_prior("cauchy(0,2)", class="sd"),
+                         # set_prior("cauchy(0,2)", class="sd"),
                          set_prior("normal(0,10)", class="b",coef="age_wife")),
                warmup = 1000, iter = 5000, chains = 4,
                control = list(adapt_delta = 0.95))
@@ -502,15 +485,10 @@ rels <- r %>% left_join (d, by=c("id_Questionaire"="idwife"))
 rels <- rels[complete.cases(rels),]
 
 
-hist(rels$familyBariReligiousAfter)
-library(fitdistrplus)
-library(logspline)
-descdist(rels$familyBariReligiousAfter, discrete = TRUE, boot=500)
-
 rels$familyBariReligiousAfter<- as.numeric(rels$familyBariReligiousAfter)
 
-model3.2b<-brm(familyBariReligiousAfter ~ kids_in_hh+
-                 age_wife+religion+location +religious_knowledge_scale+
+model3.2b<-brm(familyBariReligiousAfter ~ (1|kids_in_hh)+(1|R_NUM_SIBS)+
+                 religion+location +religious_knowledge_scale+
                  MI_geo_proximity+
                  MI_economic_capital+
                  MI_human_capital, data=rels, family = "normal",
@@ -563,13 +541,9 @@ saveRDS(model3.2b, paste0(path, filename))
 setwd("C:/Users/robert/Dropbox/Github/Kin_networks_Bangladesh")
 newdata <- read_csv("newdata.csv")
 options(scipen=999)
-# remove duplicated women
-newdata <- newdata %>% distinct(idwife, .keep_all = TRUE)
-# 1) center and scale variables for easier interpretability fo parameter estimates
-newdata$religious_knowledge_scale <-  newdata$religious_knowledge_scale-mean(newdata$religious_knowledge_scale, na.rm=T)
-newdata$hh_total  <- newdata$hh_total-mean(newdata$hh_total, na.rm=T)  
-newdata$kids_in_hh  <- newdata$kids_in_hh-mean(newdata$kids_in_hh, na.rm=T)
-d <- newdata[c(1,5,7,8,9,36,35,44,45,47,49)] # add 36 for non-rels and 35 for rels
+
+
+d <- newdata[c(1,5,7,8,9,36,35,44,45,47,49,51)] # add 36 for non-rels and 35 for rels
 d <- d[complete.cases(d), ] 
 
 # read in wife NW
@@ -612,8 +586,8 @@ non_rels <- non_rels %>% filter(location==2)
 model3.1c <- 
   brm(data = non_rels, 
       family = cumulative("logit"),
-      location ~ 1 + age_wife +  MI_geo_proximity + MI_economic_capital + MI_human_capital +
-        religion+ religious_knowledge_scale + kids_in_hh + familyBariReligiousAfter,
+      location ~ 1 +   MI_geo_proximity + MI_economic_capital + MI_human_capital +
+        religion+ religious_knowledge_scale +  familyBariReligiousAfter+(1|kids_in_hh)+(1|R_NUM_SIBS),
       prior = c(prior(normal(0, 1.5), class = Intercept),
                 prior(normal(0, 0.5), class = b)),
       iter = 5000, warmup = 1000, cores = 4, chains = 4,
@@ -640,8 +614,8 @@ rels <- rels[complete.cases(rels),]
 model3.2c <- 
   brm(data = rels, 
       family = cumulative("logit"),
-      location ~ 1 + age_wife +  MI_geo_proximity + MI_economic_capital + MI_human_capital +
-        religion+ religious_knowledge_scale + kids_in_hh + familyBariReligiousAfter,
+      location ~ 1 +  MI_geo_proximity + MI_economic_capital + MI_human_capital +
+        religion+ religious_knowledge_scale + familyBariReligiousAfter+(1|kids_in_hh)+(1|R_NUM_SIBS),
       prior = c(prior(normal(0, 1.5), class = Intercept),
                 prior(normal(0, 0.5), class = b)),
       iter = 5000, warmup = 1000, cores = 4, chains = 4,
@@ -690,18 +664,9 @@ library(tidyverse)
 library(brms)
 library(readr)
 
-d <- newdata[c(27,11,47,4,5,7,8,9,44,45,49)] 
+d <- newdata[c(27,11,47,4,5,7,8,9,44,45,49,51)] 
 d <- d[complete.cases(d), ] 
 
-hist(d$percent_rels_econ_help)
-
-library(fitdistrplus)
-library(logspline)
-descdist(d$percent_rels_econ_help, discrete = FALSE, boot=500)  # beta
-library(gamlss)
-fit <- fitDist(d$percent_rels_econ_help, k = 2, type = "realAll", trace = FALSE, try.gamlss = TRUE)
-summary(fit)
-#Family:   c("exGAUS", "ex-Gaussian") 
 
 ## try beta - transform first
 # beta transformation
@@ -710,15 +675,15 @@ summary(fit)
 d$percent_rels_econ_help <- (d$percent_rels_econ_help  * (783) + 0.5) / 784
 
 
-model4<-brm(percent_rels_econ_help ~ kids_in_hh+
-                age_wife+religion+familyBariReligiousAfter+religious_knowledge_scale+
-                MI_geo_proximity+
-                MI_economic_capital+
-                MI_human_capital, data=d, family = "beta",
-              prior = c(set_prior("normal(0,2)", class = "b"),
-                        set_prior("normal(0,10)", class="b",coef="age_wife")),
-              warmup = 1000, iter = 5000, chains = 4,
-              control = list(adapt_delta = 0.95))
+model4<-brm(percent_rels_econ_help ~ (1|kids_in_hh)+(1|R_NUM_SIBS)+
+              religion+familyBariReligiousAfter+religious_knowledge_scale+
+              MI_geo_proximity+
+              MI_economic_capital+
+              MI_human_capital, data=d, family = "beta",
+            prior = c(set_prior("normal(0,2)", class = "b"),
+                      set_prior("normal(0,10)", class="b",coef="age_wife")),
+            warmup = 1000, iter = 5000, chains = 4,
+            control = list(adapt_delta = 0.95))
 
 print(summary(model4, prob=0.95,priors=TRUE), digits = 6)
 
@@ -760,25 +725,22 @@ library(tidyverse)
 library(brms)
 library(readr)
 
-d <- newdata[c(25,11,47,4,5,7,8,9,44,45,49)] 
+d <- newdata[c(25,11,47,4,5,7,8,9,44,45,49,51)] 
 
 d <- d[complete.cases(d), ] 
 
 hist(d$non_rels_econ_help)
 
-library(fitdistrplus)
-library(logspline)
-descdist(d$non_rels_econ_help, discrete = TRUE, boot=500)  # negative binomial
 
-model4.1<-brm(non_rels_econ_help ~ kids_in_hh+
-              age_wife+religion+familyBariReligiousAfter+religious_knowledge_scale+
-              MI_geo_proximity+
-              MI_economic_capital+
-              MI_human_capital, data=d, family = negbinomial(link = "log", link_shape = "identity"),
-            prior = c(set_prior("normal(0,2)", class = "b"),
-                      set_prior("normal(0,10)", class="b",coef="age_wife")),
-            warmup = 1000, iter = 5000, chains = 4,
-            control = list(adapt_delta = 0.95))
+model4.1<-brm(non_rels_econ_help ~ (1|kids_in_hh)+(1|R_NUM_SIBS)+
+                religion+familyBariReligiousAfter+religious_knowledge_scale+
+                MI_geo_proximity+
+                MI_economic_capital+
+                MI_human_capital, data=d, family = negbinomial(link = "log", link_shape = "identity"),
+              prior = c(set_prior("normal(0,2)", class = "b"),
+                        set_prior("normal(0,10)", class="b",coef="age_wife")),
+              warmup = 1000, iter = 5000, chains = 4,
+              control = list(adapt_delta = 0.95))
 
 print(summary(model4.1, prob=0.95,priors=TRUE), digits = 6)
 # Family: negbinomial 
@@ -823,19 +785,16 @@ library(tidyverse)
 library(brms)
 library(readr)
 
-d <- newdata[c(23,11,47,4,5,7,8,9,44,45,49)] 
+d <- newdata[c(23,11,47,4,5,7,8,9,44,45,49,51)] 
 
 d <- d[complete.cases(d), ] 
 
 hist(d$rels_econ_help)
 
-library(fitdistrplus)
-library(logspline)
-descdist(d$rels_econ_help, discrete = TRUE, boot=500)  # poisson
 d$rels_econ_help<-d$rels_econ_help-0.001
 d$rels_econ_help<- as.integer(d$rels_econ_help)
 
-model4.2<-brm(rels_econ_help ~ kids_in_hh+
+model4.2<-brm(rels_econ_help ~ (1|kids_in_hh)+(1|R_NUM_SIBS)+
                 age_wife+religion+familyBariReligiousAfter+religious_knowledge_scale+
                 MI_geo_proximity+
                 MI_economic_capital+
@@ -881,7 +840,7 @@ library(tidyverse)
 library(brms)
 library(readr)
 
-d <- newdata[c(33,11,47,4,5,7,8,9,44,45,49)] 
+d <- newdata[c(33,11,47,4,5,7,8,9,44,45,49,51)] 
 
 d <- d[complete.cases(d), ] 
 
@@ -896,15 +855,15 @@ d <- d[complete.cases(d), ]
 # transform beta to be between 0 and 1
 d$percent_rels_emot_support <- (d$percent_rels_emot_support  * (783) + 0.5) / 784
 
-model5<-brm(percent_rels_emot_support ~ kids_in_hh+
-                age_wife+religion+familyBariReligiousAfter+religious_knowledge_scale+
-                MI_geo_proximity+
-                MI_economic_capital+
-                MI_human_capital, data=d, family = "beta",
-              prior = c(set_prior("normal(0,2)", class = "b"),
-                        set_prior("normal(0,10)", class="b",coef="age_wife")),
-              warmup = 1000, iter = 5000, chains = 4,
-              control = list(adapt_delta = 0.95))
+model5<-brm(percent_rels_emot_support ~ (1|kids_in_hh)+(1|R_NUM_SIBS)+
+              religion+familyBariReligiousAfter+religious_knowledge_scale+
+              MI_geo_proximity+
+              MI_economic_capital+
+              MI_human_capital, data=d, family = "beta",
+            prior = c(set_prior("normal(0,2)", class = "b"),
+                      set_prior("normal(0,10)", class="b",coef="age_wife")),
+            warmup = 1000, iter = 5000, chains = 4,
+            control = list(adapt_delta = 0.95))
 
 print(summary(model5, prob=0.95,priors=TRUE), digits = 6)
 
@@ -946,7 +905,7 @@ saveRDS(model5, paste0(path, filename))
 library(tidyverse)
 library(brms)
 library(readr)
-d <- newdata[c(31,11,47,4,5,7,8,9,44,45,49)] 
+d <- newdata[c(31,11,47,4,5,7,8,9,44,45,49,51)] 
 
 d <- d[complete.cases(d), ] 
 
@@ -957,7 +916,7 @@ d <- d[complete.cases(d), ]
 # descdist(d$emot_support_non_rels, discrete = TRUE, boot=500)  # negative binomial
 
 
-model5.1<-brm(emot_support_non_rels ~ kids_in_hh+
+model5.1<-brm(emot_support_non_rels ~ (1|kids_in_hh)+(1|R_NUM_SIBS)+
                 age_wife+religion+familyBariReligiousAfter+religious_knowledge_scale+
                 MI_geo_proximity+
                 MI_economic_capital+
@@ -1062,14 +1021,14 @@ path<- (paste0("results/"))
 filename <- "rels_emot_support_poisson.rds"
 
 saveRDS(model5.2, paste0(path, filename))
-  
+
 # 6) childcare_help_rels_percent: B=0.08 p=0.08 (religious knowledge however is a very significant negative predictor)
 library(tidyverse)
 library(brms)
 library(readr)
 
 
-d <- newdata[c(37,11,47,4,5,7,8,9,44,45,49)] 
+d <- newdata[c(37,11,47,4,5,7,8,9,44,45,49,51)] 
 
 d <- d[complete.cases(d), ] 
 
@@ -1086,8 +1045,8 @@ d <- d[complete.cases(d), ]
 # transform beta to be between 0 and 1
 d$childcare_help_rels_percent <- (d$childcare_help_rels_percent * (783) + 0.5) / 784
 
-model6<-brm(childcare_help_rels_percent ~ kids_in_hh+
-              age_wife+religion+familyBariReligiousAfter+religious_knowledge_scale+
+model6<-brm(childcare_help_rels_percent ~ (1|kids_in_hh)+(1|R_NUM_SIBS)+
+              religion+familyBariReligiousAfter+religious_knowledge_scale+
               MI_geo_proximity+
               MI_economic_capital+
               MI_human_capital, data=d, family = "beta",
@@ -1136,7 +1095,7 @@ library(tidyverse)
 library(brms)
 library(readr)
 
-d <- newdata[c(36,11,47,4,5,7,8,9,44,45,49)] 
+d <- newdata[c(36,11,47,4,5,7,8,9,44,45,49,51)] 
 
 d <- d[complete.cases(d), ] 
 
@@ -1150,8 +1109,8 @@ d <- d[complete.cases(d), ]
 # #  type = c("realAll", "realline", "realplus", "real0to1", "counts", "binom","extra")
 # summary(fit)
 
-model6.1<-brm(childcare_help_non_rels ~ kids_in_hh+
-                age_wife+religion+familyBariReligiousAfter+religious_knowledge_scale+
+model6.1<-brm(childcare_help_non_rels ~ (1|kids_in_hh)+(1|R_NUM_SIBS)+
+                religion+familyBariReligiousAfter+religious_knowledge_scale+
                 MI_geo_proximity+
                 MI_economic_capital+
                 MI_human_capital, data=d, family = negbinomial(link = "log", link_shape = "identity"),
@@ -1203,22 +1162,14 @@ saveRDS(model6.1, paste0(path, filename))
 library(brms)
 library(readr)
 
-d <- newdata[c(35,11,47,4,5,7,8,9,44,45,49)] 
+d <- newdata[c(35,11,47,4,5,7,8,9,44,45,49,51)] 
 
 d <- d[complete.cases(d), ] 
 
-# hist(d$childcare_help_rels)
-# library(fitdistrplus)
-# library(logspline)
-# descdist(d$childcare_help_rels, discrete = TRUE, boot=500)  # poisson
-# library(gamlss)
-# fit <- fitDist(d$childcare_help_rels, k = 2, type = "counts", trace = FALSE, try.gamlss = TRUE)
-# #  type = c("realAll", "realline", "realplus", "real0to1", "counts", "binom","extra")
-# summary(fit)
 
 
-model6.2<-brm(childcare_help_rels ~ kids_in_hh+
-                age_wife+religion+familyBariReligiousAfter+religious_knowledge_scale+
+model6.2<-brm(childcare_help_rels ~ (1|kids_in_hh)+(1|R_NUM_SIBS)+
+                religion+familyBariReligiousAfter+religious_knowledge_scale+
                 MI_geo_proximity+
                 MI_economic_capital+
                 MI_human_capital, data=d, family = negbinomial(link = "log", link_shape = "identity"),
@@ -1269,31 +1220,24 @@ library(tidyverse)
 library(brms)
 library(readr)
 
-d <- newdata[c(42,11,47,4,5,7,8,9,44,45,49)] 
+d <- newdata[c(42,11,47,4,5,7,8,9,44,45,49,51)] 
 
 d <- d[complete.cases(d), ] 
 
 hist(d$percent_overall_help_rels)
 
 d$percent_overall_help_rels <- (d$percent_overall_help_rels * (783) + 0.5) / 784
-# library(fitdistrplus)
-# library(logspline)
-# descdist(d$percent_overall_help_rels, discrete = FALSE, boot=500)  # beta
-# library(gamlss)
-# fit <- fitDist(d$percent_overall_help_rels, k = 2, type = "real0to1", trace = FALSE, try.gamlss = TRUE)
-# #  type = c("realAll", "realline", "realplus", "real0to1", "counts", "binom","extra")
-# summary(fit)
 
 
-model7<-brm(percent_overall_help_rels ~ kids_in_hh+
-                age_wife+religion+familyBariReligiousAfter+religious_knowledge_scale+
-                MI_geo_proximity+
-                MI_economic_capital+
-                MI_human_capital, data=d, family = "gamma",
-              prior = c(set_prior("normal(0,2)", class = "b"),
-                        set_prior("normal(0,10)", class="b",coef="age_wife")),
-              warmup = 1000, iter = 5000, chains = 4,
-              control = list(adapt_delta = 0.95))
+model7<-brm(percent_overall_help_rels ~ (1|kids_in_hh)+(1|R_NUM_SIBS)+
+              religion+familyBariReligiousAfter+religious_knowledge_scale+
+              MI_geo_proximity+
+              MI_economic_capital+
+              MI_human_capital, data=d, family = "gamma",
+            prior = c(set_prior("normal(0,2)", class = "b"),
+                      set_prior("normal(0,10)", class="b",coef="age_wife")),
+            warmup = 1000, iter = 5000, chains = 4,
+            control = list(adapt_delta = 0.95))
 
 print(summary(model7, prob=0.95,priors=TRUE), digits = 6)
 # Family: gamma 
@@ -1336,7 +1280,7 @@ library(tidyverse)
 library(brms)
 library(readr)
 
-d <- newdata[c(40,11,47,4,5,7,8,9,44,45,49)] 
+d <- newdata[c(40,11,47,4,5,7,8,9,44,45,49,51)] 
 
 d <- d[complete.cases(d), ] 
 
@@ -1351,8 +1295,8 @@ d <- d[complete.cases(d), ]
 # summary(fit)  # Family:  c("NBI", "Negative Binomial type I") 
 
 
-model7.1<-brm(overall_help_non_rels ~ kids_in_hh+
-                age_wife+religion+familyBariReligiousAfter+religious_knowledge_scale+
+model7.1<-brm(overall_help_non_rels ~ (1|kids_in_hh)+(1|R_NUM_SIBS)+
+                religion+familyBariReligiousAfter+religious_knowledge_scale+
                 MI_geo_proximity+
                 MI_economic_capital+
                 MI_human_capital, data=d, family = negbinomial(link = "log", link_shape = "identity"),
@@ -1402,23 +1346,13 @@ library(tidyverse)
 library(brms)
 library(readr)
 
-d <- newdata[c(38,11,47,4,5,7,8,9,44,45,49)] 
+d <- newdata[c(38,11,47,4,5,7,8,9,44,45,49,51)] 
 
 d <- d[complete.cases(d), ] 
 
-# hist(d$overall_help_rels)
-# 
-# library(fitdistrplus)
-# library(logspline)
-# descdist(d$overall_help_rels, discrete = TRUE, boot=500)  # poisson
-# library(gamlss)
-# fit <- fitDist(d$overall_help_rels, k = 2, type = "counts", trace = FALSE, try.gamlss = TRUE)
-# #  type = c("realAll", "realline", "realplus", "real0to1", "counts", "binom","extra")
-# summary(fit)
 
-
-model7.2<-brm(overall_help_rels ~ kids_in_hh+
-                age_wife+religion+familyBariReligiousAfter+religious_knowledge_scale+
+model7.2<-brm(overall_help_rels ~ (1|kids_in_hh)+(1|R_NUM_SIBS)+
+                religion+familyBariReligiousAfter+religious_knowledge_scale+
                 MI_geo_proximity+
                 MI_economic_capital+
                 MI_human_capital, data=d, family = "poisson",
@@ -1466,13 +1400,8 @@ saveRDS(model7.2, paste0(path, filename))
 setwd("C:/Users/robert/Dropbox/Github/Kin_networks_Bangladesh")
 newdata <- read_csv("newdata.csv")
 options(scipen=999)
-# remove duplicated women
-newdata <- newdata %>% distinct(idwife, .keep_all = TRUE)
-# 1) center and scale variables for easier interpretability fo parameter estimates
-newdata$religious_knowledge_scale <-  newdata$religious_knowledge_scale-mean(newdata$religious_knowledge_scale, na.rm=T)
-newdata$hh_total  <- newdata$hh_total-mean(newdata$hh_total, na.rm=T)  
-newdata$kids_in_hh  <- newdata$kids_in_hh-mean(newdata$kids_in_hh, na.rm=T)
-d <- newdata[c(1,5,7,8,9,36,35,44,45,47,49)] # add 36 for non-rels and 35 for rels
+
+d <- newdata[c(1,5,7,8,9,36,35,44,45,47,49,51)] # add 36 for non-rels and 35 for rels
 d <- d[complete.cases(d), ] 
 
 # read in wife NW
@@ -1513,21 +1442,19 @@ non_rels <- non_rels %>% filter(location==2)
 
 hist(non_rels$childcare_help_non_rels)
 
-library(fitdistrplus)
-library(logspline)
-descdist(non_rels$childcare_help_non_rels, discrete = TRUE, boot=500)  # negative binomial
+# negative binomial
 
 non_rels$childcare_help_non_rels<- as.integer(non_rels$childcare_help_non_rels)
 ## Run kin and non-kin living in same neighborhood only
-model8<-brm(childcare_help_non_rels ~ kids_in_hh+
-                age_wife+religion+familyBariReligiousAfter+religious_knowledge_scale+
-                MI_geo_proximity+
-                MI_economic_capital+
-                MI_human_capital, data=non_rels, family = negbinomial(link = "log", link_shape = "identity"),
-              prior = c(set_prior("normal(0,2)", class = "b"),
-                        set_prior("normal(0,10)", class="b",coef="age_wife")),
-              warmup = 1000, iter = 5000, chains = 4,
-              control = list(adapt_delta = 0.95))
+model8<-brm(childcare_help_non_rels ~ (1|kids_in_hh)+(1|R_NUM_SIBS)+religion+
+              familyBariReligiousAfter+religious_knowledge_scale+
+              MI_geo_proximity+
+              MI_economic_capital+
+              MI_human_capital, data=non_rels, family = negbinomial(link = "log", link_shape = "identity"),
+            prior = c(set_prior("normal(0,2)", class = "b"),
+                      set_prior("normal(0,10)", class="b",coef="age_wife")),
+            warmup = 1000, iter = 5000, chains = 4,
+            control = list(adapt_delta = 0.95))
 
 print(summary(model8, prob=0.95,priors=TRUE), digits = 6)
 # Family: negbinomial 
@@ -1568,13 +1495,8 @@ saveRDS(model8, paste0(path, filename))
 setwd("C:/Users/robert/Dropbox/Github/Kin_networks_Bangladesh")
 newdata <- read_csv("newdata.csv")
 options(scipen=999)
-# remove duplicated women
-newdata <- newdata %>% distinct(idwife, .keep_all = TRUE)
-# 1) center and scale variables for easier interpretability fo parameter estimates
-newdata$religious_knowledge_scale <-  newdata$religious_knowledge_scale-mean(newdata$religious_knowledge_scale, na.rm=T)
-newdata$hh_total  <- newdata$hh_total-mean(newdata$hh_total, na.rm=T)  
-newdata$kids_in_hh  <- newdata$kids_in_hh-mean(newdata$kids_in_hh, na.rm=T)
-d <- newdata[c(1,5,7,8,9,36,35,44,45,47,49)] # add 36 for non-rels and 35 for rels
+
+d <- newdata[c(1,5,7,8,9,36,35,44,45,47,49,51)] # add 36 for non-rels and 35 for rels
 d <- d[complete.cases(d), ] 
 
 # read in wife NW
@@ -1612,24 +1534,19 @@ rels$location[rels$location==4|rels$location==5] <- 4
 
 # subset to only neighbors or closer
 rels <- rels %>% filter(location==2)
-
-hist(rels$childcare_help_rels)
-
-library(fitdistrplus)
-library(logspline)
-descdist(rels$childcare_help_rels, discrete = TRUE, boot=500)  # negative binomial
+  # negative binomial
 
 rels$childcare_help_rels<- as.integer(rels$childcare_help_rels)
 ## Run kin and non-kin living in same neighborhood only
-model8.1<-brm(childcare_help_rels ~ kids_in_hh+
-              age_wife+religion+familyBariReligiousAfter+religious_knowledge_scale+
-              MI_geo_proximity+
-              MI_economic_capital+
-              MI_human_capital, data=rels, family = negbinomial(link = "log", link_shape = "identity"),
-            prior = c(set_prior("normal(0,2)", class = "b"),
-                      set_prior("normal(0,10)", class="b",coef="age_wife")),
-            warmup = 1000, iter = 5000, chains = 4,
-            control = list(adapt_delta = 0.95))
+model8.1<-brm(childcare_help_rels ~ (1|kids_in_hh)+(1|R_NUM_SIBS)+
+                religion+familyBariReligiousAfter+religious_knowledge_scale+
+                MI_geo_proximity+
+                MI_economic_capital+
+                MI_human_capital, data=rels, family = negbinomial(link = "log", link_shape = "identity"),
+              prior = c(set_prior("normal(0,2)", class = "b"),
+                        set_prior("normal(0,10)", class="b",coef="age_wife")),
+              warmup = 1000, iter = 5000, chains = 4,
+              control = list(adapt_delta = 0.95))
 
 print(summary(model8.1, prob=0.95,priors=TRUE), digits = 6)
 # Family: negbinomial 
@@ -1723,13 +1640,13 @@ c(bhyp, bob, bs, bed, bag, btech, bfact, bserv, boff, bbus, btrans, bage, bpop,
   bobs,bobage,bobhyp) ~ dnorm(0,1)
 
 model1 <- brm(formula = time | cens(censored) ~ age * sex + disease
-            + (1 + age|patient),
-            data = kidney, family = lognormal(),
-            prior = c(set_prior("normal(0,5)", class = "b"),
-                      set_prior("cauchy(0,2)", class = "sd"),
-                      set_prior("lkj(2)", class = "cor")),
-            warmup = 1000, iter = 2000, chains = 4,
-            control = list(adapt_delta = 0.95))
+              + (1 + age|patient),
+              data = kidney, family = lognormal(),
+              prior = c(set_prior("normal(0,5)", class = "b"),
+                        set_prior("cauchy(0,2)", class = "sd"),
+                        set_prior("lkj(2)", class = "cor")),
+              warmup = 1000, iter = 2000, chains = 4,
+              control = list(adapt_delta = 0.95))
 
 
 
@@ -1798,7 +1715,7 @@ Unobserved -> Religiosity
 Unobserved-> Kin_density
 }")
 coordinates( Kin_dag)<-list(x=c(Religiosity=0,Kin_density=2,Unobserved=1.5,Religion=1),
-y=c(Religiosity=1,"Kin_density"=2,Unobserved=3,Religion=4) )
+                            y=c(Religiosity=1,"Kin_density"=2,Unobserved=3,Religion=4) )
 drawdag( Kin_dag)
 
 
@@ -1814,7 +1731,6 @@ age_wife -> kin_density
 religiosity <-U<-neighborhood->house->kin_density
 religion <- religious knowledge -> religiosity
 MI_economic_capital<- U<- MI_human_capital -> MI_geo_proximity
-
 religiosity <-U<-MI_human_capital->religion->kin_density
 age_wife ->U<-kin_density
 }")
