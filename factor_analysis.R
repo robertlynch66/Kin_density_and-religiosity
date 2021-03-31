@@ -200,7 +200,7 @@ data_pca <- PCA(new_data)
 fviz_screeplot(data_pca, ncp=15)
 
 
-# it looks to me like PCA is syaing there are 3 dimensions!!!
+# it looks to me like PCA is saying there are 3 dimensions!!!
 ## keep the ones to the left of the 'elbow' on the screee plot (e.g. where it levels off)
 Or 
 # use the Kaiser-Gutmman rule which is to retain components with an eigen value >1
@@ -388,7 +388,7 @@ fa.parallel(reduced_data,  fa="fa", fm="mle")
 
 
 # Parallel analysis suggests that the number of factors =  8  and the number of components =  NA 
-# but looking at the plot - I think it shoud be three!!!
+# but looking at the plot - I think it should be three!!!
 
 # Check out the scree test and the Kaiser-Guttman criterion.
 scree(data_c)
@@ -400,7 +400,67 @@ fa.parallel(data_c, n.obs = 766, fm = "minres", fa = "fa")
 fa.parallel(data_c, n.obs = 766, fm = "mle", fa = "fa")
 
 # or 
-fa.parallel(reduced_data, fm = "mle", fa = "fa") ## choose this one
+parallel <- fa.parallel(reduced_data, fm = "mle", fa = "fa", n.iter=50, SMC=TRUE,quant=0.95) ## choose this one
+
+#Create data frame &amp;amp;amp;amp;amp;quot;obs&amp;amp;amp;amp;amp;quot; from observed eigenvalue data
+obs = data.frame(parallel$fa.values)
+obs$type = c('Observed Data')
+obs$num = c(row.names(obs))
+obs$num = as.numeric(obs$num)
+colnames(obs) = c('eigenvalue', 'type', 'num')
+
+#Calculate quantiles for eigenvalues, but only store those from simulated CF model in percentile1
+percentile = apply(parallel$values,2,function(x) quantile(x,.95))
+min = as.numeric(nrow(obs))
+min = (4*min) - (min-1)
+max = as.numeric(nrow(obs))
+max = 4*max
+percentile1 = percentile[min:max]
+
+#Create data frame called &amp;amp;amp;amp;amp;quot;sim&amp;amp;amp;amp;amp;quot; with simulated eigenvalue data
+sim = data.frame(percentile1)
+sim$type = c('Simulated Data (95th percentile)')
+sim$num = c(row.names(obs))
+sim$num = as.numeric(sim$num)
+colnames(sim) = c('eigenvalue', 'type', 'num')
+
+#Merge the two data frames (obs and sim) together into data frame called eigendat
+eigendat = rbind(obs,sim)
+
+apatheme=theme_bw()+
+  theme(panel.grid.major = element_blank(),
+        panel.grid.minor = element_blank(),
+        panel.background = element_blank(),
+        panel.border = element_blank(),
+        text=element_text(family='Arial'),
+        legend.title=element_blank(),
+        legend.position=c(.7,.8),
+        axis.line.x = element_line(color='black'),
+        axis.line.y = element_line(color='black'))
+
+#Use data from eigendat. Map number of factors to x-axis, eigenvalue to y-axis, and give different data point shapes depending on whether eigenvalue is observed or simulated
+p = ggplot(eigendat, aes(x=num, y=eigenvalue, shape=type)) +
+  #Add lines connecting data points
+  geom_line()+
+  #Add the data points.
+  geom_point(size=4)+
+  #Label the y-axis 'Eigenvalue'
+  scale_y_continuous(name='Eigenvalue')+
+  #Label the x-axis 'Factor Number', and ensure that it ranges from 1-max # of factors, increasing by one with each 'tick' mark.
+  scale_x_continuous(name='Factor Number', breaks=min(eigendat$num):max(eigendat$num))+
+  #Manually specify the different shapes to use for actual and simulated data, in this case, white and black circles.
+  scale_shape_manual(values=c(16,1)) +
+  #Add vertical line indicating parallel analysis suggested max # of factors to retain
+  geom_vline(xintercept = parallel$nfact, linetype = 'dashed')+
+  #Apply our apa-formatting theme
+  apatheme
+#Call the plot. Looks pretty!
+p
+
+ggsave('scree_plot_parallel_analysis(2).png', width=6, height=6, unit='in', dpi=300)
+
+
+### make a nice scree plot
 
 #4) rotate the factors to reflect the factor structure in a "better" way and this makes them easier to interpret.
 # As long as the factor structure is not altered, meaning that the location of any variable
@@ -535,15 +595,84 @@ fa.parallel(reduced_data, fm = "mle", fa = "fa") ## choose this one
  # check out the factor loadings
  print(f_data_oblimon$loadings, cut=0)
  
+ library(psych)
+ library(data.table)
+ library(ggplot2)
+ library(reshape2)
+ 
+ options(width=240)
+ 
+ # df = read.csv('precities.csv')
+ # df2 = cor(df, use="pairwise.complete.obs")
+ # 
+ # scree plot, find #factors
+ #scree(df)
+ #fa.parallel(df)
+ #fa.parallel(df2)
+ 
+ #loadings
+ load = fa(data_c,9,rotate='oblimin',fm='mle', nfactors=3)
+
+ load = load$loadings
+ load = load[]
+ load = data.frame(load)
+ setDT(load,keep.rownames=TRUE)[]
+ colnames(load)[1] <- "Indicators"
+ 
+ colnames(load)[2:4] <- c("Geographic proximity","Economic capital","Human capital")
+ load[1,1] <- "Food security"
+ load[2,1] <- "Food source"
+ load[3,1] <- "Total wealth"
+ load[4,1] <- "Total income"
+ load[5,1] <- "Labor migrants in hh"
+ load[6,1] <- "Relative education"
+ load[7,1] <- "Perceived wealth"
+ load[8,1] <- "Internet use"
+ load[9,1] <- "Time to nearest Primary School"
+ load[10,1] <- "Time to nearest College"
+ load[11,1] <- "Time to nearest Small Bazaar"
+ load[12,1] <- "Time to nearest Large Bazaar"
+ load[13,1] <- "Time to nearest Town"
+ load[14,1] <- "Time to nearest Main Road"
+ load[15,1] <- "Time to nearest Pharmacy"
+ load[16,1] <- "Time to  Hospital (MBBS site)"
+ load[17,1] <- "Labor migrants in village"
+ load[18,1] <- "Education wife"
+ 
+ load <- load[-c(19),] 
+
+ load[19,1] <- "Education husband"
+ load[20,1] <- "Relocated to improve access to markets"
+ 
+ load <- load[-c(21),] 
+ load <- load[-c(22),]
+ 
+ load[21,1] <- "Husband's Travel"
+ load[22,1] <- "Occupation market connection"
+ load[23,1] <- "Age wife"
+ load[24,1] <- "Own smartphone "
+ load[25,1] <- "Own computer"
+ load[26,1] <- "Have electricity"
+ load[27,1] <- "Land owned "
+ 
+ load.m <- melt(load, id="Indicators", variable.name="Factors", value.name="Loading", measure = colnames(load)[2:4])
  
 
+ loadPlot <- ggplot(load.m, aes(Indicators, abs(Loading), fill=Loading)) + 
+   facet_wrap(~ Factors, nrow=1) + geom_bar(stat="identity")+ coord_flip() +
+   scale_fill_gradient2(name="Loading",high="blue",mid="white",low="red",midpoint=0,guide=F)+
+   ylab("Loading")+theme_bw(base_size=10)
  
- # View the first few lines of examinees' factor scores
+ ### save path analysis figure to Figures 
+ ggsave("C:/Users/robert/Dropbox/PSU postdoc/Effect of religiosity on kin network density/Figures/SM figures/path diagram_MI_loadings.png")
+ ggsave("C:/Users/robert/Dropbox/PSU postdoc/Effect of religiosity on kin network density/Figures/SM figures/path diagram_MI_loadings.pdf")
+
+ # View the first few lines of  factor scores
  head(f_data_oblimon$scores)
 
 str(f_data_oblimon)
 # output: Use this list to delete variables that do not load well
-## these are the correlations between the varibales and the 3 factors we presumed
+## these are the correlations between the variables and the 3 factors we presumed
 #   Loadings:
 #   ML2    ML1    ML3   
 # foodSecurity                        0.059  0.036  0.457
@@ -600,9 +729,6 @@ summary(f_data_oblimon$scores)
 
 
 alpha(reduced_data,check.keys=TRUE)
-
-
-
 
 
 # Getting the correlation matrix of the dataset.
