@@ -3,22 +3,27 @@ library(readr)
 library(tidyverse)
 options(scipen = 999)
 # read in the data
-data <- read.csv("all_MI_data.csv")
+#data <- read.csv("all_MI_data2.csv")
 
+data2 <- read_csv("new_MI_data.csv")
 
+data3 <- read_csv("all_mi_data.csv")
+data3 <- data3 %>% select (1,4,27,12,29,34,35,36,42:45,47:50)
 # remove duplicates
-data2 <- data[!duplicated(data$idwife), ]
+data2 <- data2[!duplicated(data2$idwife), ]
 data2$rowname <- rownames(data2)
 # which variables have substantial missingness (n=282)
 #age_h, institutionloan_vs_other_h,useInternet_h, watchTV_mins_per_month_h, bank_vs_micro_h, listenRadio_h
 library(dplyr)
 
-positions <- c(4,7:36,42:45,47:51)
+positions <- c(4,7:28,31:37)
 
 library(dplyr)
 complete_data <- data2 %>% dplyr::select(positions)
 
-
+# add needed MI variables from data 3 to complete_data
+data3 <- data3 %>% select (2,5,9,10,11,12,13,14,15)
+complete_data <- complete_data %>% left_join(data3,by=c("idwife"= "idwife"))
 ############################################################################################################
 ############################################################################################################
 ############################################################################################################
@@ -28,12 +33,91 @@ complete_data <- data2 %>% dplyr::select(positions)
 #EFA models are much more realistic as than PCA because they do not attempt to explain ALL the variance
 # in the models
 
-# Reduce dataset
-drop <- c("idwife","listenRadio","institutionloan_vs_other","wifeAbroadTravel","husband_occupation","wifeTravelINBangladesh",
-          "occupation_agriculture_dummy","bank_vs_micro","assetMobilePhone","occupation_ses",
-          "marketIntegrationDhakaTime","marketIntegrationHighSchoolTime","husbandTravelINBangladesh")
-reduced_data <- complete_data[,!(names(complete_data) %in% drop)]
+# KMO on forst pass FYI - reason for drops below
+# Kaiser-Meyer-Olkin factor adequacy
+# Call: KMO(r = data_c)
+# Overall MSA =  0.74
+# MSA for each item = 
+#   idwife                       foodSecurity                      foodSourceNow 
+# 0.51                               0.84                               0.66 
+# WEALTH_TOTAL_VAL                       total_income             labor_migrant_hh_total 
+# 0.80                               0.83                               0.77 
+# familyBariEducationAfter             MacArthurLadderPresent                        listenRadio 
+# 0.72                               0.84                               0.59 
+# useInternet marketIntegrationPrimarySchoolTime    marketIntegrationHighSchoolTime 
+# 0.74                               0.87                               0.55 
+# marketIntegrationCollegeTime   marketIntegrationSmallBazaarTime   marketIntegrationLargeBazaarTime 
+# 0.88                               0.85                               0.83 
+# marketIntegrationTownTime      marketIntegrationMainRoadTime         marketIntegrationDhakaTime 
+# 0.86                               0.93                               0.58 
+# marketIntegrationPharmacyTime          marketIntegrationMBBSTime   labor_migrant_bari_in_bangladesh 
+# 0.84                               0.82                               0.66 
+# YOB_wife            years_of_education_wife                        relocate_MI 
+# 0.66                               0.82                               0.86 
+# institutionloan_vs_other                      bank_vs_micro          husbandTravelINBangladesh 
+# 0.52                               0.46                               0.69 
+# wifeTravelINBangladesh                   wifeAbroadTravel                husbandAbroadTravel 
+# 0.70                               0.54                               0.76 
+# years_of_education_husband       occupation_agriculture_dummy          occupation_mkt_connection 
+# 0.83                               0.45                               0.56 
+# occupation_ses                           age_wife                      assetComputer 
+# 0.53                               0.65                               0.75 
+# assetSmartphone                landOwnedFarmAmount 
+# 0.82                               0.71 
 
+# Reduce dataset - after next stop looking at KMO's less than 0.6
+drop <- c("idwife","foodSourceNow",
+           "listenRadio",
+          "institutionloan_vs_other",
+          "wifeAbroadTravel",
+          "occupation_agriculture_dummy",
+          "bank_vs_micro","occupation_ses","YOB_wife",
+          "marketIntegrationDhakaTime","marketIntegrationHighSchoolTime")
+
+data <- complete_data[,!(names(complete_data) %in% drop)]
+
+#data <- complete_data[,]
+
+
+data$familyBariEducationAfter <- as.character(data$familyBariEducationAfter)
+# fix familyBariEducationAfter
+attach(data)
+data$familyBariEducationAfter[familyBariEducationAfter=="average"] <- 1
+data$familyBariEducationAfter[familyBariEducationAfter=="less"] <- 0
+data$familyBariEducationAfter[familyBariEducationAfter=="more"] <- 2
+data$familyBariEducationAfter[familyBariEducationAfter=="less\n\n\nmore"] <- 1
+data$familyBariEducationAfter[familyBariEducationAfter=="DK"] <- 1
+detach(data)
+
+# 
+data$familyBariEducationAfter <- as.integer(data$familyBariEducationAfter)
+
+data$familyBariEducationAfter[is.na(data$familyBariEducationAfter)] <-1
+
+# check these
+# data$marketIntegrationDhakaTime <- ifelse(data$marketIntegrationDhakaTime==1802,180,
+#                                           data$marketIntegrationDhakaTime)
+data$marketIntegrationMBBSTime <- ifelse(data$marketIntegrationMBBSTime==1800,180,
+                                         data$marketIntegrationMBBSTime)
+data$marketIntegrationTownTime <- ifelse(data$marketIntegrationTownTime>180,180,
+                                         data$marketIntegrationTownTime)
+data$marketIntegrationSmallBazaarTime <- ifelse(data$marketIntegrationSmallBazaarTime>60,60,
+                                                data$marketIntegrationSmallBazaarTime)
+
+
+# standardize and invert time to market minutes
+# manually invert the times to ... so that all variables are in the same direction
+# e.g. 0 = least integrated , 10 = most integrated
+data$marketIntegrationPrimarySchoolTime <- max(data$marketIntegrationPrimarySchoolTime)/(data$marketIntegrationPrimarySchoolTime+1)
+data$marketIntegrationHighSchoolTime <- max(data$marketIntegrationHighSchoolTime)/(data$marketIntegrationHighSchoolTime+1)
+data$marketIntegrationCollegeTime <- max(data$marketIntegrationCollegeTime)/(data$marketIntegrationCollegeTime+1)
+data$marketIntegrationSmallBazaarTime <- max(data$marketIntegrationSmallBazaarTime)/(data$marketIntegrationSmallBazaarTime+1)
+data$marketIntegrationLargeBazaarTime <- max(data$marketIntegrationLargeBazaarTime)/(data$marketIntegrationLargeBazaarTime+1)
+data$marketIntegrationTownTime <- max(data$marketIntegrationTownTime)/(data$marketIntegrationTownTime+1)
+data$marketIntegrationMainRoadTime <- max(data$marketIntegrationMainRoadTime)/(data$marketIntegrationMainRoadTime+1)
+data$marketIntegrationDhakaTime <- max(data$marketIntegrationDhakaTime)/(data$marketIntegrationDhakaTime+1)
+data$marketIntegrationPharmacyTime <- max(data$marketIntegrationPharmacyTime)/(data$marketIntegrationPharmacyTime+1)
+data$marketIntegrationMBBSTime <- max(data$marketIntegrationMBBSTime)/(data$marketIntegrationMBBSTime+1)
 
 ############################################################################################
 #additional potential drops?? c("assetComputer","landOwnedFarmAmount" )   
@@ -48,7 +132,7 @@ reduced_data <- complete_data[,!(names(complete_data) %in% drop)]
 # the bartlett sphericity test
 library(polycor)
 #calculate the correlations
-data_hetcor <- hetcor(reduced_data,NA.method="pairwise.complete.obs")
+data_hetcor <- hetcor(data,NA.method="pairwise.complete.obs")
 
 
 #get the correlation matrix
@@ -67,6 +151,7 @@ data_factorability
 
 KMO(data_c)
 
+
 # this test compares the partial correlation matrix with the pairwise correlation matrix
 #The statistic is a measure of how small the partial corelations are relative to the original zero order correlations
 # the partial correlation for each pair of variables is comprised of the correlation between those variable after
@@ -78,24 +163,32 @@ KMO(data_c)
 
 ## what is mine?
 # Kaiser-Meyer-Olkin factor adequacy
+# Kaiser-Meyer-Olkin factor adequacy
 # Call: KMO(r = data_c)
-# Overall MSA =  0.87
+# Overall MSA =  0.81
 # MSA for each item = 
-#   foodSecurity                   WEALTH_TOTAL_VAL                       total_income 
-# 0.82                               0.75                               0.80 
-# labor_migrant_hh_total             MacArthurLadderPresent marketIntegrationPrimarySchoolTime 
-# 0.62                               0.83                               0.92 
+#   foodSecurity                                         WEALTH_TOTAL_VAL 
+# 0.84                                                            0.79 
+# total_income             labor_migrant_hh_total           familyBariEducationAfter 
+# 0.82                               0.62                               0.73 
+# MacArthurLadderPresent                        useInternet marketIntegrationPrimarySchoolTime 
+# 0.84                               0.74                               0.86 
 # marketIntegrationCollegeTime   marketIntegrationSmallBazaarTime   marketIntegrationLargeBazaarTime 
-# 0.92                               0.91                               0.90 
+# 0.87                               0.85                               0.85 
 # marketIntegrationTownTime      marketIntegrationMainRoadTime      marketIntegrationPharmacyTime 
-# 0.92                               0.96                               0.90 
-# marketIntegrationMBBSTime            years_of_education_wife         years_of_education_husband 
-# 0.88                               0.71                               0.75 
-# occupation_mkt_connection                           age_wife                    assetSmartphone 
-# 0.76                               0.65                               0.81 
-# assetComputer                landOwnedFarmAmount 
-# 0.78                               0.80 
+# 0.87                               0.93                               0.84 
+# marketIntegrationMBBSTime   labor_migrant_bari_in_bangladesh            years_of_education_wife 
+# 0.83                               0.65                               0.77 
+# relocate_MI          husbandTravelINBangladesh             wifeTravelINBangladesh 
+# 0.79                               0.66                               0.70 
+# husbandAbroadTravel         years_of_education_husband          occupation_mkt_connection 
+# 0.72                               0.80                               0.76 
+# age_wife                      assetComputer                    assetSmartphone 
+# 0.67                               0.75                               0.82 
+# landOwnedFarmAmount 
+# 0.73 
 
+# possible additional dumps:  foodSourceNow and labor_migrant_bari_in_bangladesh
 #2) extract factors
 library(psych)
 library(GPArotation)
@@ -106,7 +199,7 @@ library(GPArotation)
 #minres (minimum residual) - minimizes the residula matrix.  In other words it minimizes the differences between the
 # correaltion matrix implied by the extracted factors and the original correlation matrix
 
-f_data_minres <- fa(reduced_data, nfactors=3, rotate="none",  missing=TRUE)
+f_data_minres <- fa(data, nfactors=3, rotate="none",  missing=TRUE)
 
 # sorted by communality
 f_data_minres_common <- sort(f_data_minres$communality, decreasing=TRUE)
@@ -115,26 +208,34 @@ f_data_minres_common <- sort(f_data_minres$communality, decreasing=TRUE)
 data.frame(f_data_minres_common)
 
 # f_data_minres_common
-# marketIntegrationLargeBazaarTime              0.8508527
-# marketIntegrationTownTime                     0.8151899
-# marketIntegrationMBBSTime                     0.7366401
-# WEALTH_TOTAL_VAL                              0.6486280
-# marketIntegrationCollegeTime                  0.6242082
-# marketIntegrationSmallBazaarTime              0.6050392
-# years_of_education_wife                       0.5967025
-# marketIntegrationPharmacyTime                 0.5928636
-# marketIntegrationPrimarySchoolTime            0.5544164
-# age_wife                                      0.5360308
-# marketIntegrationMainRoadTime                 0.4537930
-# total_income                                  0.3800114
-# MacArthurLadderPresent                        0.3630067
-# years_of_education_husband                    0.3487644
-# assetSmartphone                               0.2709403
-# labor_migrant_hh_total                        0.2388972
-# foodSecurity                                  0.2298665
-# occupation_mkt_connection                     0.2215844
-# assetComputer                                 0.1091134
-# landOwnedFarmAmount                           0.1030974
+# marketIntegrationLargeBazaarTime             0.85197539
+# marketIntegrationTownTime                    0.81376381
+# marketIntegrationMBBSTime                    0.73750124
+# marketIntegrationCollegeTime                 0.62417435
+# marketIntegrationSmallBazaarTime             0.60517054
+# marketIntegrationPharmacyTime                0.59109941
+# WEALTH_TOTAL_VAL                             0.58341244
+# years_of_education_wife                      0.55507646
+# age_wife                                     0.55405365
+# marketIntegrationPrimarySchoolTime           0.55198756
+# marketIntegrationMainRoadTime                0.45342970
+# MacArthurLadderPresent                       0.38755644
+# years_of_education_husband                   0.38385545
+# total_income                                 0.36364688
+# assetSmartphone                              0.26479049
+# occupation_mkt_connection                    0.24761849
+# foodSecurity                                 0.22548929
+# labor_migrant_hh_total                       0.22045242
+# relocate_MI                                  0.20062600
+# familyBariEducationAfter                     0.17076168
+# landOwnedFarmAmount                          0.12528433
+# husbandAbroadTravel                          0.10526244
+# assetComputer                                0.10261792
+# useInternet                                  0.10184631
+# wifeTravelINBangladesh                       0.09507220
+# husbandTravelINBangladesh                    0.06561738
+# labor_migrant_bari_in_bangladesh             0.05791869
+# foodSourceNow                                0.02283830
 # # the output above is the estimated commonality (% of variance explained by the
 # #(extracted factors - here 3) and uniqueness (mirror image of commonality) vectors
 # #variables with a relatively high commonality are being accounted fairly well by the four factors you
@@ -146,8 +247,8 @@ data.frame(f_data_minres_common)
 #3) choose the correct number of factors to retain
 
 
-fa.parallel(reduced_data, fm = "mle", fa = "fa") ## choose this one
-# Parallel analysis suggests that the number of factors =  4  and the number of components =  NA 
+fa.parallel(data, fm = "mle", fa = "fa") ## choose this one
+# Parallel analysis suggests that the number of factors =  6  and the number of components =  NA 
 
 
 #4) rotate the factors to reflect the factor structure in a "better" way and this makes them easier to interpret.
@@ -164,64 +265,79 @@ fa.parallel(reduced_data, fm = "mle", fa = "fa") ## choose this one
 # oblimin and promax are oblique methods
 
 # build a 3 factor model with varimax (othrogonal method) or oblimin (oblique method)
-f_data_oblimon <- fa(reduced_data, fm="mle", nfactors=3, rotate = "varimax",  missing=TRUE)
+f_data_oblimon <- fa(data, fm="mle", nfactors=3, rotate = "varimax",  missing=TRUE)
 print(f_data_oblimon)
 
 # Output:
+#Parallel analysis suggests that the number of factors =  6  and the number of components =  NA 
+f_data_oblimon <- fa(data, fm="mle", nfactors=3, rotate = "varimax",  missing=TRUE)
+print(f_data_oblimon)
 # Factor Analysis using method =  ml
-# Call: fa(r = reduced_data, nfactors = 3, rotate = "varimax", 
-#          missing = TRUE, fm = "mle")
+# Call: fa(r = data, nfactors = 3, rotate = "varimax", missing = TRUE, 
+#          fm = "mle")
 # Standardized loadings (pattern matrix) based upon correlation matrix
-#                                     ML1   ML2   ML3   h2   u2 com
-# foodSecurity                        0.09  0.46  0.05 0.22 0.78 1.1
-# WEALTH_TOTAL_VAL                    0.01  0.80  0.02 0.65 0.35 1.0
-# total_income                       -0.03  0.61 -0.15 0.39 0.61 1.1
-# labor_migrant_hh_total             -0.01  0.24 -0.42 0.24 0.76 1.6
-# MacArthurLadderPresent             -0.05  0.59  0.06 0.35 0.65 1.0
-# marketIntegrationPrimarySchoolTime  0.74  0.01 -0.04 0.55 0.45 1.0
-# marketIntegrationCollegeTime        0.79  0.04 -0.03 0.63 0.37 1.0
-# marketIntegrationSmallBazaarTime    0.78  0.00  0.00 0.60 0.40 1.0
-# marketIntegrationLargeBazaarTime    0.92 -0.02 -0.01 0.84 0.16 1.0
-# marketIntegrationTownTime           0.90 -0.02  0.03 0.82 0.18 1.0
-# marketIntegrationMainRoadTime       0.68  0.00  0.03 0.46 0.54 1.0
-# marketIntegrationPharmacyTime       0.76  0.04  0.08 0.59 0.41 1.0
-# marketIntegrationMBBSTime           0.86  0.00  0.02 0.75 0.25 1.0
-# years_of_education_wife             0.03  0.23  0.74 0.60 0.40 1.2
-# years_of_education_husband          0.02  0.35  0.49 0.36 0.64 1.8
-# occupation_mkt_connection           0.01  0.07  0.46 0.22 0.78 1.0
-# age_wife                            0.03  0.16 -0.69 0.50 0.50 1.1
-# assetSmartphone                     0.03  0.53  0.05 0.29 0.71 1.0
-# assetComputer                       0.02  0.32  0.15 0.12 0.88 1.4
-# landOwnedFarmAmount                -0.04  0.31 -0.07 0.11 0.89 1.1
+# ML1   ML2   ML3    h2   u2 com
+# foodSecurity                       -0.13 -0.45 -0.03 0.224 0.78 1.2
+# foodSourceNow                       0.06 -0.08  0.08 0.016 0.98 2.9
+# WEALTH_TOTAL_VAL                    0.01  0.77 -0.02 0.592 0.41 1.0
+# total_income                       -0.03  0.59 -0.17 0.380 0.62 1.2
+# labor_migrant_hh_total             -0.01  0.24 -0.43 0.242 0.76 1.6
+# familyBariEducationAfter            0.00  0.42  0.09 0.184 0.82 1.1
+# MacArthurLadderPresent             -0.05  0.62  0.01 0.381 0.62 1.0
+# useInternet                        -0.04  0.30 -0.03 0.093 0.91 1.0
+# marketIntegrationPrimarySchoolTime  0.74  0.01 -0.02 0.551 0.45 1.0
+# marketIntegrationCollegeTime        0.79  0.04 -0.02 0.625 0.38 1.0
+# marketIntegrationSmallBazaarTime    0.78  0.01  0.01 0.602 0.40 1.0
+# marketIntegrationLargeBazaarTime    0.92 -0.02  0.00 0.842 0.16 1.0
+# marketIntegrationTownTime           0.90 -0.02  0.03 0.818 0.18 1.0
+# marketIntegrationMainRoadTime       0.68 -0.01  0.04 0.461 0.54 1.0
+# marketIntegrationPharmacyTime       0.76  0.05  0.08 0.589 0.41 1.0
+# marketIntegrationMBBSTime           0.86  0.01  0.02 0.745 0.25 1.0
+# labor_migrant_bari_in_bangladesh   -0.04  0.22  0.06 0.052 0.95 1.2
+# years_of_education_wife             0.03  0.27  0.70 0.563 0.44 1.3
+# relocate_MI                         0.03 -0.03  0.44 0.197 0.80 1.0
+# husbandTravelINBangladesh           0.02  0.17  0.14 0.051 0.95 2.0
+# wifeTravelINBangladesh              0.06  0.26  0.11 0.083 0.92 1.5
+# husbandAbroadTravel                -0.01  0.17  0.27 0.103 0.90 1.7
+# years_of_education_husband          0.02  0.40  0.46 0.375 0.63 2.0
+# occupation_mkt_connection           0.01  0.10  0.47 0.229 0.77 1.1
+# age_wife                            0.04  0.13 -0.73 0.554 0.45 1.1
+# assetComputer                       0.02  0.32  0.11 0.114 0.89 1.3
+# assetSmartphone                     0.03  0.53  0.03 0.279 0.72 1.0
+# landOwnedFarmAmount                -0.04  0.33 -0.10 0.117 0.88 1.2
 # 
 # ML1  ML2  ML3
-# SS loadings           5.24 2.32 1.72
-# Proportion Var        0.26 0.12 0.09
-# Cumulative Var        0.26 0.38 0.46
-# Proportion Explained  0.56 0.25 0.19
-# Cumulative Proportion 0.56 0.81 1.00
+# SS loadings           5.26 2.79 2.02
+# Proportion Var        0.19 0.10 0.07
+# Cumulative Var        0.19 0.29 0.36
+# Proportion Explained  0.52 0.28 0.20
+# Cumulative Proportion 0.52 0.80 1.00
 # 
-# Mean item complexity =  1.1
+# Mean item complexity =  1.3
 # Test of the hypothesis that 3 factors are sufficient.
 # 
-# The degrees of freedom for the null model are  190  and the objective function was  9.33 with Chi Square of  7063.81
-# The degrees of freedom for the model are 133  and the objective function was  0.96 
+# The degrees of freedom for the null model are  378  and the objective function was  10.98 with Chi Square of  8289.28
+# The degrees of freedom for the model are 297  and the objective function was  1.97 
 # 
-# The root mean square of the residuals (RMSR) is  0.03 
-# The df corrected root mean square of the residuals is  0.04 
+# The root mean square of the residuals (RMSR) is  0.05 
+# The df corrected root mean square of the residuals is  0.06 
 # 
-# The harmonic number of observations is  766 with the empirical chi square  335.72  with prob <  0.00000000000000000017 
-# The total number of observations was  766  with Likelihood Chi Square =  723.74  with prob <  0.00000000000000000000000000000000000000000000000000000000000000000000000000000000049 
+# The harmonic number of observations is  765 with the empirical chi square  1423.05  with prob <  0.000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000029 
+# The total number of observations was  766  with Likelihood Chi Square =  1479.34  with prob <  0.0000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000053 
 # 
-# Tucker Lewis Index of factoring reliability =  0.877
-# RMSEA index =  0.076  and the 90 % confidence intervals are  0.071 0.082
-# BIC =  -159.54
-# Fit based upon off diagonal values = 0.99
+# Tucker Lewis Index of factoring reliability =  0.809
+# RMSEA index =  0.072  and the 90 % confidence intervals are  0.068 0.076
+# BIC =  -493.1
+# Fit based upon off diagonal values = 0.95
 # Measures of factor score adequacy             
 # ML1  ML2  ML3
-# Correlation of (regression) scores with factors   0.98 0.90 0.88
-# Multiple R square of scores with factors          0.95 0.81 0.77
-# Minimum correlation of possible factor scores     0.90 0.62 0.53
+# Correlation of (regression) scores with factors   0.98 0.91 0.89
+# Multiple R square of scores with factors          0.95 0.82 0.78
+# Minimum correlation of possible factor scores     0.90 0.64 0.57
+
+# h2 is the the h2 (communalities) the u2 (the uniquenesses), com (the complexity of the factor loadings for that variable (see below).
+#  But for an oblique solution, it is the row sum of the orthogonal factor loadings (remember, that rotations or transformations do not change the communality).
+
 
 #5) interpret results
 # path diagrams
@@ -230,34 +346,42 @@ fa.diagram(f_data_oblimon)
 # check out the factor loadings
 print(f_data_oblimon$loadings, cut=0)
 
-#OUTPUT
+# #OUTPUT
 # Loadings:
-#                                       ML1    ML2    ML3   
-# foodSecurity                        0.090  0.456  0.054
-# WEALTH_TOTAL_VAL                    0.011  0.805  0.022
-# total_income                       -0.028  0.606 -0.147
-# labor_migrant_hh_total             -0.009  0.243 -0.420
-# MacArthurLadderPresent             -0.051  0.588  0.060
-# marketIntegrationPrimarySchoolTime  0.742  0.009 -0.038
-# marketIntegrationCollegeTime        0.789  0.042 -0.034
-# marketIntegrationSmallBazaarTime    0.776  0.003 -0.002
-# marketIntegrationLargeBazaarTime    0.917 -0.016 -0.007
-# marketIntegrationTownTime           0.904 -0.022  0.033
-# marketIntegrationMainRoadTime       0.678 -0.003  0.028
-# marketIntegrationPharmacyTime       0.763  0.043  0.077
-# marketIntegrationMBBSTime           0.863  0.002  0.018
-# years_of_education_wife             0.032  0.230  0.741
-# years_of_education_husband          0.018  0.353  0.486
-# occupation_mkt_connection           0.011  0.070  0.462
-# age_wife                            0.034  0.164 -0.690
-# assetSmartphone                     0.029  0.531  0.054
-# assetComputer                       0.023  0.316  0.150
-# landOwnedFarmAmount                -0.038  0.314 -0.071
+#   ML1    ML2    ML3   
+# foodSecurity                       -0.128 -0.455 -0.027
+# foodSourceNow                       0.064 -0.075  0.082
+# WEALTH_TOTAL_VAL                    0.012  0.769 -0.015
+# total_income                       -0.025  0.591 -0.172
+# labor_migrant_hh_total             -0.005  0.242 -0.429
+# familyBariEducationAfter            0.005  0.420  0.088
+# MacArthurLadderPresent             -0.050  0.615  0.009
+# useInternet                        -0.035  0.302 -0.029
+# marketIntegrationPrimarySchoolTime  0.742  0.009 -0.024
+# marketIntegrationCollegeTime        0.789  0.036 -0.020
+# marketIntegrationSmallBazaarTime    0.776  0.007  0.007
+# marketIntegrationLargeBazaarTime    0.917 -0.020  0.004
+# marketIntegrationTownTime           0.903 -0.024  0.032
+# marketIntegrationMainRoadTime       0.678 -0.006  0.038
+# marketIntegrationPharmacyTime       0.762  0.049  0.077
+# marketIntegrationMBBSTime           0.863  0.007  0.022
+# labor_migrant_bari_in_bangladesh   -0.036  0.215  0.064
+# years_of_education_wife             0.027  0.274  0.698
+# relocate_MI                         0.026 -0.028  0.443
+# husbandTravelINBangladesh           0.023  0.173  0.142
+# wifeTravelINBangladesh              0.065  0.259  0.108
+# husbandAbroadTravel                -0.009  0.168  0.274
+# years_of_education_husband          0.016  0.404  0.459
+# occupation_mkt_connection           0.009  0.104  0.467
+# age_wife                            0.041  0.129 -0.732
+# assetComputer                       0.023  0.317  0.113
+# assetSmartphone                     0.030  0.527  0.029
+# landOwnedFarmAmount                -0.037  0.327 -0.095
 # 
 # ML1   ML2   ML3
-# SS loadings    5.237 2.321 1.720
-# Proportion Var 0.262 0.116 0.086
-# Cumulative Var 0.262 0.378 0.464
+# SS loadings    5.255 2.787 2.022
+# Proportion Var 0.188 0.100 0.072
+# Cumulative Var 0.188 0.287 0.359
 
 # ML1 is commuting time to markets
 
@@ -274,7 +398,7 @@ print(f_data_oblimon$loadings, cut=0)
 
 #First, make sure data has rownames. If not, give it dummy names like:
 
-rownames(reduced_data) <- 1:nrow(reduced_data)
+rownames(data) <- 1:nrow(data)
 
 #Then run model <- fa(...), and convert fa$scores to a data frame of factor scores. E.g.,
 
@@ -282,12 +406,12 @@ fs <- data.frame(f_data_oblimon$scores)
 rownames(fs) <- 1:nrow(fs)
 #Then, add a rowname column to both your original data and fs:
   
-reduced_data$rowname <- as.numeric(rownames(reduced_data))
+data$rowname <- as.numeric(rownames(data))
 fs$rowname   <- as.numeric(rownames(fs))
 #Then left join to data (using dplyr package):
   
   library(dplyr)
-new_data <- left_join(reduced_data, fs, by = "rowname")
+new_data <- left_join(data, fs, by = "rowname")
 
 # join new_data to data2
 # but first just get factors from new data
@@ -295,6 +419,8 @@ new_data <- new_data %>% select (21:24)
 new_data$rowname <- as.numeric(new_data$rowname)
 
 # link
+
+#### maybe not necessary!!!!
 
 data2$rowname <- 1:nrow(data2)
 data2$rowname <- as.numeric(data2$rowname)
@@ -327,18 +453,18 @@ library(FactoMineR)
 
 
 # convert df to all numeric
-reduced_data[] <- lapply(reduced_data, function(x) {
+data[] <- lapply(data, function(x) {
   if(is.integer(x)) as.numeric(as.character(x)) else x
 })
-sapply(reduced_data, class)
+sapply(data, class)
 
-reduced_data <- select (reduced_data,1:24) 
-reduced_data[,25] <- NULL
+data <- select (data,1:27) 
+data[,28] <- NULL
 ## deal with missing data
 
 library(polycor)
 #calculate the correlations
-data_hetcor <- hetcor(reduced_data,NA.method="pairwise.complete.obs")
+data_hetcor <- hetcor(data,NA.method="pairwise.complete.obs")
 
 #get the correlation matrix
 data_c <- data_hetcor$correlations
@@ -352,25 +478,29 @@ KMO(data_c)
 
 # Kaiser-Meyer-Olkin factor adequacy
 # Call: KMO(r = data_c)
-# Overall MSA =  0.87
+# Overall MSA =  0.81
 # MSA for each item = 
 #   foodSecurity                   WEALTH_TOTAL_VAL                       total_income 
-# 0.82                               0.75                               0.80 
-# labor_migrant_hh_total             MacArthurLadderPresent marketIntegrationPrimarySchoolTime 
-# 0.62                               0.83                               0.92 
-# marketIntegrationCollegeTime   marketIntegrationSmallBazaarTime   marketIntegrationLargeBazaarTime 
-# 0.92                               0.91                               0.90 
-# marketIntegrationTownTime      marketIntegrationMainRoadTime      marketIntegrationPharmacyTime 
-# 0.92                               0.96                               0.90 
-# marketIntegrationMBBSTime            years_of_education_wife         years_of_education_husband 
-# 0.88                               0.71                               0.75 
-# occupation_mkt_connection                           age_wife                    assetSmartphone 
-# 0.76                               0.65                               0.81 
-# assetComputer                landOwnedFarmAmount 
-# 0.78                               0.80 
-
-
+# 0.84                               0.79                               0.82 
+# labor_migrant_hh_total           familyBariEducationAfter             MacArthurLadderPresent 
+# 0.61                               0.74                               0.84 
+# useInternet marketIntegrationPrimarySchoolTime       marketIntegrationCollegeTime 
+# 0.75                               0.86                               0.87 
+# marketIntegrationSmallBazaarTime   marketIntegrationLargeBazaarTime          marketIntegrationTownTime 
+# 0.85                               0.85                               0.87 
+# marketIntegrationMainRoadTime      marketIntegrationPharmacyTime          marketIntegrationMBBSTime 
+# 0.93                               0.84                               0.83 
+# labor_migrant_bari_in_bangladesh            years_of_education_wife                        relocate_MI 
+# 0.67                               0.77                               0.79 
+# husbandTravelINBangladesh             wifeTravelINBangladesh                husbandAbroadTravel 
+# 0.66                               0.71                               0.72 
+# years_of_education_husband          occupation_mkt_connection                           age_wife 
+# 0.79                               0.80                               0.67 
+# assetComputer                    assetSmartphone                landOwnedFarmAmount 
+# 0.75                               0.82                               0.74 
 #loadings
+library(data.table)
+library(MuMIn)
 load = fa(data_c,9,rotate='oblimin',fm='mle', nfactors=3)
 
 load = load$loadings
@@ -381,37 +511,37 @@ colnames(load)[1] <- "Indicators"
 
 colnames(load)[2:4] <- c("Geographic proximity","Economic capital","Human capital")
 load[1,1] <- "Food security"
-load[2,1] <- "Food source"
-load[3,1] <- "Total wealth"
-load[4,1] <- "Total income"
-load[5,1] <- "Labor migrants in hh"
-load[6,1] <- "Family education"
-load[7,1] <- "Perceived wealth"
-load[8,1] <- "Internet use"
-load[9,1] <- "Time to nearest Primary School"
-load[10,1] <- "Time to nearest College"
-load[11,1] <- "Time to nearest Small Bazaar"
-load[12,1] <- "Time to nearest Large Bazaar"
-load[13,1] <- "Time to nearest Town"
-load[14,1] <- "Time to nearest Main Road"
-load[15,1] <- "Time to nearest Pharmacy"
-load[16,1] <- "Time to  Hospital (MBBS site)"
-load[17,1] <- "Labor migrants in village"
-load[18,1] <- "Education wife"
-
-load[19,1] <- "Education husband"
-load[20,1] <- "Relocated to improve access to markets"
-
-load[21,1] <- "Husband's Travel"
-load[22,1] <- "Occupation market connection"
-load[23,1] <- "Age wife"
-load[24,1] <- "Own smartphone "
+load[2,1] <- "Total wealth"
+load[3,1] <- "Total income"
+load[4,1] <- "Labor migrants in hh"
+load[5,1] <- "Family education"
+load[6,1] <- "Perceived wealth"
+load[7,1] <- "Internet use"
+load[8,1] <- "Time to nearest Primary School"
+load[9,1] <- "Time to nearest College"
+load[10,1] <- "Time to nearest Small Bazaar"
+load[11,1] <- "Time to nearest Large Bazaar"
+load[12,1] <- "Time to nearest Town"
+load[13,1] <- "Time to nearest Main Road"
+load[14,1] <- "Time to nearest Pharmacy"
+load[15,1] <- "Time to  Hospital (MBBS site)"
+load[16,1] <- "Labor migrants in village"
+load[17,1] <- "Education wife"
+load[18,1] <- "Relocated to improve access to markets"
+load[19,1] <- "Husband's Travel in Bangladesh"
+load[20,1] <- "Wife's Travel in Bangladesh"
+load[21,1] <- "Husband's Travel Abroad"
+load[22,1] <- "Education husband"
+load[23,1] <- "Occupation market connection"
+load[24,1] <- "Age wife"
 load[25,1] <- "Own computer"
-load[26,1] <- "Have electricity"
+load[26,1] <- "Own smart phone"
 load[27,1] <- "Land owned"
+#load[26,1] <- "Have electricity"
 
 load.m <- melt(load, id="Indicators", variable.name="Factors", value.name="Loading", measure = colnames(load)[2:4])
 
+### HERE !!!!
 
 loadPlot <- ggplot(load.m, aes(Indicators, abs(Loading), fill=Loading)) + 
   facet_wrap(~ Factors, nrow=1) + geom_bar(stat="identity")+ coord_flip() +
@@ -421,6 +551,70 @@ loadPlot <- ggplot(load.m, aes(Indicators, abs(Loading), fill=Loading)) +
 ### save path analysis figure to Figures 
 ggsave("C:/Users/robert/Dropbox/PSU postdoc/Effect of religiosity on kin network density/Figures/SM figures/path diagram_MI_loadings.png")
 ggsave("C:/Users/robert/Dropbox/PSU postdoc/Effect of religiosity on kin network density/Figures/SM figures/path diagram_MI_loadings.pdf")
+
+
+
+#### make the nice scree plot
+parallel <- fa.parallel(data, fm = "mle", fa = "fa", n.iter=50, SMC=TRUE,quant=0.95) ## choose this one
+
+#Create data frame &amp;amp;amp;amp;amp;quot;obs&amp;amp;amp;amp;amp;quot; from observed eigenvalue data
+obs = data.frame(parallel$fa.values)
+obs$type = c('Observed Data')
+obs$num = c(row.names(obs))
+obs$num = as.numeric(obs$num)
+colnames(obs) = c('eigenvalue', 'type', 'num')
+
+#Calculate quantiles for eigenvalues, but only store those from simulated CF model in percentile1
+percentile = apply(parallel$values,2,function(x) quantile(x,.95))
+min = as.numeric(nrow(obs))
+min = (4*min) - (min-1)
+max = as.numeric(nrow(obs))
+max = 4*max
+percentile1 = percentile[min:max]
+
+#Create data frame called &amp;amp;amp;amp;amp;quot;sim&amp;amp;amp;amp;amp;quot; with simulated eigenvalue data
+sim = data.frame(percentile1)
+sim$type = c('Simulated Data (95th percentile)')
+sim$num = c(row.names(obs))
+sim$num = as.numeric(sim$num)
+colnames(sim) = c('eigenvalue', 'type', 'num')
+
+#Merge the two data frames (obs and sim) together into data frame called eigendat
+eigendat = rbind(obs,sim)
+
+apatheme=theme_bw()+
+  theme(panel.grid.major = element_blank(),
+        panel.grid.minor = element_blank(),
+        panel.background = element_blank(),
+        panel.border = element_blank(),
+        text=element_text(family='Arial'),
+        legend.title=element_blank(),
+        legend.position=c(.7,.8),
+        axis.line.x = element_line(color='black'),
+        axis.line.y = element_line(color='black'))
+
+#Use data from eigendat. Map number of factors to x-axis, eigenvalue to y-axis, and give different data point shapes depending on whether eigenvalue is observed or simulated
+p = ggplot(eigendat, aes(x=num, y=eigenvalue, shape=type)) +
+  #Add lines connecting data points
+  geom_line()+
+  #Add the data points.
+  geom_point(size=4)+
+  #Label the y-axis 'Eigenvalue'
+  scale_y_continuous(name='Eigenvalue')+
+  #Label the x-axis 'Factor Number', and ensure that it ranges from 1-max # of factors, increasing by one with each 'tick' mark.
+  scale_x_continuous(name='Factor Number', breaks=min(eigendat$num):max(eigendat$num))+
+  #Manually specify the different shapes to use for actual and simulated data, in this case, white and black circles.
+  scale_shape_manual(values=c(16,1)) +
+  #Add vertical line indicating parallel analysis suggested max # of factors to retain
+  geom_vline(xintercept = parallel$nfact, linetype = 'dashed')+
+  #Apply our apa-formatting theme
+  apatheme
+#Call the plot. Looks pretty!
+p
+
+ggsave("C:/Users/robert/Dropbox/PSU postdoc/Effect of religiosity on kin network density/Figures/SM figures/scree_plot_parallel_analysis.png, width=6, height=6, unit='in', dpi=300")
+ggsave("C:/Users/robert/Dropbox/PSU postdoc/Effect of religiosity on kin network density/Figures/SM figures/scree_plot_parallel_analysis.pdf, width=6, height=6, unit='in', dpi=300")
+
 
 ### KEEP EVERYTHING IN SINGLE FACTOR ANALYSIS
 library(psych)

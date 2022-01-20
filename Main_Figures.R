@@ -33,7 +33,7 @@ data$kids_in_hh[is.na(data$kids_in_hh)]<- 0
 data$religious_knowledge_scale[is.na(data$religious_knowledge_scale)]<-0
 data$religion[is.na(data$religion)]<-0
 data$sex <- NULL
-data <- data[c(4,6:8,9,10,18,20,22,28,34,35,36,37,39,41,43,44,45,46,48)] 
+data <- data[c(4,6:8,9,10,18,20,22,28,34,35,36,37,39,41,43,44,45,46,48,50,51)] 
 data <- data[complete.cases(data), ] 
 # ######
 #####################################################################
@@ -45,11 +45,13 @@ library(readr)
 M1 <- readRDS("C:/Users/robert/Dropbox/Github/Kin_networks_Bangladesh/results/NW_total_lognormal.rds")
 
 religious_seq <- tibble(religiosity = seq(from = -1, to = 1, by = 1))
+
 attach(data)
 newdata <- data.frame(
+ # re_formula = NA,
+  R_NUM_SIBS=mean(R_NUM_SIBS),
   kids_in_hh = mean(kids_in_hh),
-  age_wife = mean(age_wife),
-  religion=mean(religion),
+  #religion=mean(religion),
   familyBariReligiousAfter = c(-1,0,1),
   religious_knowledge_scale=mean(religious_knowledge_scale),
   MI_geo_proximity=mean(MI_geo_proximity),
@@ -58,16 +60,45 @@ newdata <- data.frame(
 )
 detach(data)
 
-### plot 1
+#####
+# df_demo_fitted <- data %>%
+#   # Create a dataframe with all possible combination of Subject and Days
+#   tidyr::expand(
+#     R_NUM_SIBS = mean(R_NUM_SIBS),
+#     kids_in_hh=mean(kids_in_hh),
+#     religion=mean(religion),
+#     familyBariReligiousAfter = c(-1,0,1),
+#     religious_knowledge_scale=mean(religious_knowledge_scale),
+#     MI_geo_proximity=c(-1,0,1),
+#     MI_economic_capital=mean(MI_economic_capital),
+#     MI_human_capital=mean(MI_human_capital)
+#     )%>%
+#   # Get the posterior predictions
+#   add_fitted_draws(model = M1)
 
-mu_summary <-
-  fitted(M1, 
-         newdata = newdata, probs=c(0.05,0.95)) %>%
+### plot 1
+#re.form=~0)
+
+ mu_summary <-
+  fitted(M1,
+         newdata = newdata, 
+         #re_formula=NA,
+         #summary=TRUE,
+         allow_new_levels=TRUE,
+         probs=c(0.05,0.95)) %>%
   as_tibble() %>%
   # let's tack on the `religiosity` values from `religious_seq` if necessary (here it is not)
-  bind_cols(religious_seq)
-  
+# mutate(religious_seq = rep(c(-1, 0, 1), each = 3 ))
+        #geo_prox = rep(c(-1,0,1), 3) )
+
+   bind_cols(religious_seq)
+ 
+
 mu_summary
+
+
+
+
 
 data$religiosity <- data$familyBariReligiousAfter
 
@@ -218,7 +249,9 @@ plot(plot1)
 M1 <- readRDS("C:/Users/robert/Dropbox/Github/Kin_networks_Bangladesh/results/non_relatives_in_NW_neg_bin.rds")
 mu_summary <-
   fitted(M1, 
-         newdata = newdata, probs=c(0.05,0.95)) %>%
+         newdata = newdata, 
+         allow_new_levels=TRUE,
+         probs=c(0.05,0.95)) %>%
   as_tibble() %>%
   # let's tack on the `religiosity` values from `religious_seq` if necessary (here it is not)
   bind_cols(religious_seq)
@@ -315,7 +348,9 @@ plot(plot2)
 M1 <- readRDS("C:/Users/robert/Dropbox/Github/Kin_networks_Bangladesh/results/relatives_in_NW_lognormal.rds")
 mu_summary <-
   fitted(M1, 
-         newdata = newdata, probs=c(0.05,0.95)) %>%
+         newdata = newdata, 
+         allow_new_levels=TRUE,
+         probs=c(0.05,0.95)) %>%
   as_tibble() %>%
   # let's tack on the `religiosity` values from `religious_seq` if necessary (here it is not)
   bind_cols(religious_seq)
@@ -408,7 +443,9 @@ plot(plot3)
 M1 <- readRDS("C:/Users/robert/Dropbox/Github/Kin_networks_Bangladesh/results/percent_relatives_in_NW_lognormal.rds")
 mu_summary <-
   fitted(M1, 
-         newdata = newdata, probs=c(0.05,0.95)) %>%
+         newdata = newdata, 
+         allow_new_levels=TRUE,
+         probs=c(0.05,0.95)) %>%
   as_tibble() %>%
   # let's tack on the `religiosity` values from `religious_seq` if necessary (here it is not)
   bind_cols(religious_seq)
@@ -519,7 +556,7 @@ p2 <- p%>%  ggplot(aes(y = 0, x = b_familyBariReligiousAfter, fill="")) +
   geom_vline(xintercept = 0 , linetype = "dashed", color="grey") +
   geom_text(aes(x=0.03024811, label="0.03", y=0.75), colour="black", vjust = 1.2)+
   scale_y_continuous(NULL, breaks = NULL)+
-  scale_x_continuous(name="Posterior Distribution", breaks=c(0.01,0.02,0.03,0.04,0.05),labels=c('0.01','0.02','0.03','0.04','0.05'),limits=c(-0.028,0.082))+
+  scale_x_continuous(name="Posterior Distribution", breaks=c(0.01,0.02,0.03,0.04,0.05),labels=c('0.01','0.02','0.03','0.04','0.05'),limits=c(-0.3,0.3))+
   scale_fill_manual(name = "Posterior distribution", labels = c("97.5% CI"),values = "springgreen4")  +
   theme(panel.grid.major = element_blank(),
         panel.grid.minor = element_blank(),
@@ -588,9 +625,6 @@ M1 <- readRDS("C:/Users/robert/Dropbox/Github/Kin_networks_Bangladesh/results/re
 religious_seq <- tibble(religiosity = seq(from = -1, to = 1, by = 1))
 attach(data)
 newdata <- data.frame(
-  kids_in_hh = mean(kids_in_hh),
-  age_wife = mean(age_wife),
-  religion=mean(religion),
   familyBariReligiousAfter = c(-1,0,1),
   religious_knowledge_scale=mean(religious_knowledge_scale),
   MI_geo_proximity=mean(MI_geo_proximity),
@@ -600,7 +634,9 @@ newdata <- data.frame(
 detach(data)
 mu_summary <-
   fitted(M1, 
-         newdata = newdata, probs=c(0.05,0.95)) %>%
+         newdata = newdata, 
+         allow_new_levels=TRUE,
+         probs=c(0.05,0.95)) %>%
   as_tibble() %>%
   # let's tack on the `religiosity` values from `religious_seq` if necessary (here it is not)
   bind_cols(religious_seq)
@@ -711,9 +747,6 @@ plot(fig8.5)
  religious_seq <- tibble(religiosity = seq(from = -1, to = 1, by = 1))
  attach(data)
  newdata <- data.frame(
-   kids_in_hh = mean(kids_in_hh),
-   age_wife = mean(age_wife),
-   religion=mean(religion),
    familyBariReligiousAfter = c(-1,0,1),
   religious_knowledge_scale=mean(religious_knowledge_scale),
   MI_geo_proximity=mean(MI_geo_proximity),
@@ -723,7 +756,9 @@ plot(fig8.5)
 detach(data)
 mu_summary <-
   fitted(M1, 
-        newdata = newdata, probs=c(0.05,0.95)) %>%
+        newdata = newdata, 
+        allow_new_levels=TRUE,
+        probs=c(0.05,0.95)) %>%
  as_tibble() %>%
 #   # let's tack on the `religiosity` values from `religious_seq` if necessary (here it is not)
  bind_cols(religious_seq)
@@ -818,9 +853,6 @@ M1 <- readRDS("C:/Users/robert/Dropbox/Github/Kin_networks_Bangladesh/results/ch
 religious_seq <- tibble(religiosity = seq(from = -1, to = 1, by = 1))
 attach(data)
 newdata <- data.frame(
-  kids_in_hh = mean(kids_in_hh),
-  age_wife = mean(age_wife),
-  religion=mean(religion),
   familyBariReligiousAfter = c(-1,0,1),
   religious_knowledge_scale=mean(religious_knowledge_scale),
   MI_geo_proximity=mean(MI_geo_proximity),
@@ -830,7 +862,9 @@ newdata <- data.frame(
 detach(data)
 mu_summary <-
   fitted(M1, 
-         newdata = newdata, probs=c(0.05,0.95)) %>%
+         newdata = newdata, 
+         allow_new_levels=TRUE,
+         probs=c(0.05,0.95)) %>%
   as_tibble() %>%
   # let's tack on the `religiosity` values from `religious_seq` if necessary (here it is not)
   bind_cols(religious_seq)
@@ -1028,7 +1062,9 @@ M1 <- readRDS("C:/Users/robert/Dropbox/Github/Kin_networks_Bangladesh/results/re
 
 mu_summary <-
   fitted(M1, 
-         newdata = newdata, probs=c(0.05,0.95)) %>%
+         newdata = newdata, 
+         allow_new_levels=TRUE,
+         probs=c(0.05,0.95)) %>%
   as_tibble() %>%
   # let's tack on the `religiosity` values from `religious_seq` if necessary (here it is not)
   bind_cols(religious_seq)
@@ -1135,7 +1171,9 @@ plot(fig7)
 M1 <- readRDS("C:/Users/robert/Dropbox/Github/Kin_networks_Bangladesh/results/overall_help_rels_poisson.rds")
 mu_summary <-
   fitted(M1,
-         newdata = newdata, probs=c(0.05,0.95)) %>%
+         newdata = newdata,
+         allow_new_levels=TRUE,
+         probs=c(0.05,0.95)) %>%
   as_tibble() %>%
   # let's tack on the `religiosity` values from `religious_seq` if necessary (here it is not)
   bind_cols(religious_seq)
@@ -1426,16 +1464,16 @@ setwd("C:/Users/robert/Dropbox/Github/Kin_networks_Bangladesh")
 newdata <- read_csv("newdata.csv")
 options(scipen=999)
 # remove duplicated women
-newdata <- newdata %>% distinct(idwife, .keep_all = TRUE)
-# 1) center and scale variables for easier interpretability fo parameter estimates
+# newdata <- newdata %>% distinct(idwife, .keep_all = TRUE)
+# 1) center and scale variables for easier interpretability for parameter estimates
 newdata$religious_knowledge_scale <-  newdata$religious_knowledge_scale-mean(newdata$religious_knowledge_scale, na.rm=T)
 newdata$hh_total  <- newdata$hh_total-mean(newdata$hh_total, na.rm=T)  
 newdata$kids_in_hh  <- newdata$kids_in_hh-mean(newdata$kids_in_hh, na.rm=T)
-d <- newdata[c(1,5,7,8,9,44,45,47,49)] 
+d <- newdata[c(1,5,7,8,9,44,45,47,49,51)] 
 d <- d[complete.cases(d), ] 
 
 # read in wife NW
-WifeNW <- read_csv("HHQPeopleinNW.csv")
+WifeNW <- read_csv("C:/Users/robert/Dropbox/PSU postdoc/Access text files Bangladesh/HHQPeopleinNW.csv")
 
 # key variables are location and relationship
 WifeNW$relationship <- as.numeric(WifeNW$relationship)
@@ -1475,11 +1513,10 @@ M1 <- readRDS("C:/Users/robert/Dropbox/Github/Kin_networks_Bangladesh/results/Ge
 #religious_seq <- tibble(religiosity = seq(from = -1, to = 1, by = 1))
 attach(non_rels)
 nd <- tibble(
-  kids_in_hh = mean(kids_in_hh),
-  age_wife = mean(age_wife),
-  religion=mean(religion),
   familyBariReligiousAfter = c(-1,0,1),
   religious_knowledge_scale=mean(religious_knowledge_scale),
+  kids_in_hh=mean(kids_in_hh),
+  R_NUM_SIBS=mean(R_NUM_SIBS),
   MI_geo_proximity=mean(MI_geo_proximity),
   MI_economic_capital=mean(MI_economic_capital),
   MI_human_capital=mean(MI_human_capital)
@@ -1491,7 +1528,9 @@ detach(non_rels)
 # use new data frame nd
 religious_seq <- tibble(religiosity = seq(from = -1, to = 1, by = 1))
 mu_summary <- fitted(M1,
-                     newdata = nd, probs=c(0.05,0.95)) %>%
+                     newdata = nd, 
+                     allow_new_levels=TRUE,
+                     probs=c(0.05,0.95)) %>%
   as_tibble() %>%
   bind_cols(religious_seq)
 
@@ -1604,12 +1643,12 @@ range(p$condition_mean1)
 ## get rid of or change legend on plot below or better yet save it and add it later to grid arrange somewhere
 p1 <- p%>%  ggplot(aes(y = 0, x = condition_mean1)) +
   stat_halfeye(point_interval = mean_hdi, .width = .95, fill="springgreen4",color="black",show.legend=T)  +
-  geom_vline(xintercept = 0.4783045, linetype = "dashed",color="black") +
+  geom_vline(xintercept = 0.5210234, linetype = "dashed",color="black") +
   geom_vline(xintercept = 0 , linetype = "dashed", color="grey") +
   
-  geom_text(aes(x=0.4783045, label="0.48", y=0.75), colour="black", vjust = 1.2)+
+  geom_text(aes(x=0.5110234, label="0.51", y=0.75), colour="black", vjust = 1.2)+
   scale_y_continuous(NULL, breaks = NULL)+
-  scale_x_continuous(name="Posterior distribution", breaks=c(0,0.25,0.5,0.75,1.0),labels=c('0','0.25','0.5','0.75','1.0'),limits=c(-0.11,1.1))+
+  scale_x_continuous(name="Posterior distribution", breaks=c(0,0.25,0.5,0.75,1.0),labels=c('0','0.25','0.5','0.75','1.0'),limits=c(-0.06,1.125))+
   theme(panel.grid.major = element_blank(),
         panel.grid.minor = element_blank(),
         panel.background = element_rect(fill="white"),
@@ -1640,6 +1679,7 @@ library(lattice)
 geo_non_kin <- grid.arrange(plot1,p1, ncol=2)   
 geo_non_kin
 
+
 ##################################################################################
 ### Do it for relatives
 ## get data non_rels and models
@@ -1652,16 +1692,18 @@ setwd("C:/Users/robert/Dropbox/Github/Kin_networks_Bangladesh")
 newdata <- read_csv("newdata.csv")
 options(scipen=999)
 # remove duplicated women
-newdata <- newdata %>% distinct(idwife, .keep_all = TRUE)
+# newdata <- newdata %>% distinct(idwife, .keep_all = TRUE)
 # 1) center and scale variables for easier interpretability fo parameter estimates
 newdata$religious_knowledge_scale <-  newdata$religious_knowledge_scale-mean(newdata$religious_knowledge_scale, na.rm=T)
 newdata$hh_total  <- newdata$hh_total-mean(newdata$hh_total, na.rm=T)  
 newdata$kids_in_hh  <- newdata$kids_in_hh-mean(newdata$kids_in_hh, na.rm=T)
-d <- newdata[c(1,5,7,8,9,44,45,47,49)] 
+d <- newdata[c(1,5,7,8,9,44,45,47,49,51)] 
 d <- d[complete.cases(d), ] 
 
 # read in wife NW
-WifeNW <- read_csv("HHQPeopleinNW.csv")
+WifeNW <- read_csv("C:/Users/robert/Dropbox/PSU postdoc/Access text files Bangladesh/HHQPeopleinNW.csv")
+
+# key variables are location and relationship
 
 # key variables are location and relationship
 WifeNW$relationship <- as.numeric(WifeNW$relationship)
@@ -1705,11 +1747,10 @@ M1 <- readRDS("C:/Users/robert/Dropbox/Github/Kin_networks_Bangladesh/results/Ge
 #religious_seq <- tibble(religiosity = seq(from = -1, to = 1, by = 1))
 attach(rels)
 nd <- tibble(
-  kids_in_hh = mean(kids_in_hh),
-  age_wife = mean(age_wife),
-  religion=mean(religion),
   familyBariReligiousAfter = c(-1,0,1),
   religious_knowledge_scale=mean(religious_knowledge_scale),
+  kids_in_hh=mean(kids_in_hh),
+  R_NUM_SIBS=mean(R_NUM_SIBS),
   MI_geo_proximity=mean(MI_geo_proximity),
   MI_economic_capital=mean(MI_economic_capital),
   MI_human_capital=mean(MI_human_capital)
@@ -1721,32 +1762,31 @@ detach(rels)
 # use new data frame nd
 religious_seq <- tibble(religiosity = seq(from = -1, to = 1, by = 1))
 mu_summary <- fitted(M1,
-                     newdata = nd, probs=c(0.05,0.95)) %>%
+                     newdata = nd, 
+                     allow_new_levels=TRUE,
+                     probs=c(0.05,0.95)) %>%
   as_tibble() %>%
   bind_cols(religious_seq)
 
 
-j1 <- mu_summary %>% select (1:4,21)
+j1 <- mu_summary %>% select (1:4,17)
 j1$location <- 1
 names(j1) <- c("estimate","error","5CI","95CI","religiosity","location")
 
-j2 <- mu_summary %>% select (5:8,21)
+j2 <- mu_summary %>% select (5:8,17)
 j2$location <- 2
 names(j2) <- c("estimate","error","5CI","95CI","religiosity","location")
 
-j3 <- mu_summary %>% select (9:12,21)
+j3 <- mu_summary %>% select (9:12,17)
 j3$location <- 3
 names(j3) <- c("estimate","error","5CI","95CI","religiosity","location")
 
-j4 <- mu_summary %>% select (13:16,21)
+j4 <- mu_summary %>% select (13:16,17)
 j4$location <- 4
 names(j4) <- c("estimate","error","5CI","95CI","religiosity","location")
 
-j5 <- mu_summary %>% select (17:20,21)
-j5$location <- 5
-names(j5) <- c("estimate","error","5CI","95CI","religiosity","location")
 
-mu_summary <- rbind(j1,j2,j3,j4,j5)
+mu_summary <- rbind(j1,j2,j3,j4)
 
 mu_summary$lower <- mu_summary$`5CI`
 mu_summary$upper <- mu_summary$`95CI`
@@ -1809,9 +1849,9 @@ plot2
 facet_bounds <- read.table(header=TRUE,
                            text=                           
                              "location ymin ymax breaks
-2     0.50     0.54    3
-3     0.08     0.14   3
-4     0.06     0.12    3",
+2     0.70     0.90    3
+3     0.05     0.13   3
+4     0.05     0.16    3",
                            stringsAsFactors=FALSE)
 
 ff <- with(facet_bounds,
@@ -1848,12 +1888,12 @@ range(p$condition_mean1)
 ## get rid of or change legend on plot below or better yet save it and add it later to grid arrange somewhere
 p1 <- p%>%  ggplot(aes(y = 0, x = condition_mean1)) +
   stat_halfeye(point_interval = mean_hdi, .width = .95, fill="springgreen4",color="black",show.legend=T)  +
-  geom_vline(xintercept = 0.1469372, linetype = "dashed",color="black") +
+  geom_vline(xintercept = 0.1365285, linetype = "dashed",color="black") +
   geom_vline(xintercept = 0 , linetype = "dashed", color="grey") +
   
-  geom_text(aes(x=0.1469372, label="0.15", y=0.75), colour="black", vjust = 1.2)+
+  geom_text(aes(x=0.1365285, label="0.14", y=0.75), colour="black", vjust = 1.2)+
   scale_y_continuous(NULL, breaks = NULL)+
-  scale_x_continuous(name="Posterior distribution", breaks=c(0,0.1,0.2,0.3),labels=c('0','0.1','0.2','0.3'),limits=c(-0.032,0.34))+
+  scale_x_continuous(name="Posterior distribution", breaks=c(0,0.1,0.2,0.3),labels=c('0','0.1','0.2','0.3'),limits=c(-0.06,0.34))+
   theme(panel.grid.major = element_blank(),
         panel.grid.minor = element_blank(),
         panel.background = element_rect(fill="white"),
@@ -1870,6 +1910,7 @@ p1 <- p%>%  ggplot(aes(y = 0, x = condition_mean1)) +
   theme(legend.position = "none") 
 
 p1
+
 
 
 ## use grid arrange to put plots in order
@@ -1929,6 +1970,40 @@ plotl
 legend3 <- get_legend(plotl)
 plot(legend3)
 
+pl <- p%>%  ggplot(aes(y = 0, x = condition_mean1)) +
+  stat_halfeye(point_interval = mean_hdi, .width = .95, fill="springgreen4",color="black",show.legend=T)  +
+  geom_vline(xintercept = 0.1365285, linetype = "dashed",color="black") +
+  geom_vline(xintercept = 0 , linetype = "dashed", color="grey") +
+  
+  geom_text(aes(x=0.1365285, label="0.14", y=0.75), colour="black", vjust = 1.2)+
+  scale_y_continuous(NULL, breaks = NULL)+
+  scale_x_continuous(name="Posterior distribution", breaks=c(0,0.1,0.2,0.3),labels=c('0','0.1','0.2','0.3'),limits=c(-0.06,0.34))+
+ 
+  scale_color_manual(name = "Posterior distribution", labels = c("97.5% CI"),values = "springgreen4")  +
+  scale_fill_manual(name = "Posterior distribution", labels = c("97.5% CI"),values = "springgreen4")  +
+  theme(panel.grid.major = element_blank(),
+        panel.grid.minor = element_blank(),
+        panel.background = element_rect(fill="white"),
+        legend.key.size = unit(0.15, "in"),
+        legend.key = element_rect(colour = "transparent", fill = NA),
+        legend.box.background = element_blank(),
+        
+        axis.text.x = element_text(colour="grey20",size=10,angle=0,face="bold"),
+        axis.text.y = element_text(colour="grey20",size=10,angle=0,hjust=0,vjust=0,face="bold"),  
+        axis.title.x = element_text(colour="black",size=10,angle=0,hjust=.5,vjust=0,face="bold"),
+        axis.title.y = element_text(colour="black",size=14,angle=90,hjust=0.5,vjust=1,face="bold"),
+        strip.text.x = element_text(size = 12, color = "white", face = "bold"),
+        strip.background = element_rect(color="white", fill="black", size=1, linetype="solid")) +
+  # this strips the legend mapping of width
+  guides(size = FALSE)  
+
+pl
+
+legend2 <- get_legend(pl)
+plot(legend2)
+
+
+#### GET LEGEND 2 from above!!!!!!! (Figs 1-4)
 side_row <- plot_grid(
   legend3, legend2,
   #axis = c("t", "t"),
@@ -1942,7 +2017,8 @@ Figure2 <- plot_grid(geo_non_kin, geo_kin,side_row, ncol = 3,
                      rel_widths = c(1, 1, 1/2))
 
 Figure2
-setwd("C:/Users/robert/Dropbox/Github/Kin_networks_Bangladesh/Figures")
+
+setwd("C:/Users/robert/Dropbox/PSU postdoc/Effect of religiosity on kin network density/Figures/main figs")
 ggsave("Figure2_geo_distance.pdf", Figure2,width = 32, height = 20, units = "cm")
 ggsave("Figure2_geo_distance.png", Figure2,width = 32, height = 20, units = "cm")
 
@@ -1956,6 +2032,10 @@ ggsave("Figure2_geo_distance.png", Figure2,width = 32, height = 20, units = "cm"
 #################################################################################################################
 ####################################################################################################################
 
+
+
+###########################FIXED THROUGH HERE ONLY (e.g. put in random effects instead of fixed effects
+# for all plots above this one)
 # make the Childcare figure - figure 4 - 2 X 2 (neighborhood kin - neighborhood non-kin)
 #                                              (childcare kin      -  childcare non kin )
 
@@ -1982,7 +2062,7 @@ d <- newdata[c(1,5,7,8,9,36,35,44,45,47,49)] # add 36 for non-rels and 35 for re
 d <- d[complete.cases(d), ] 
 
 # read in wife NW
-WifeNW <- read_csv("HHQPeopleinNW.csv")
+WifeNW <- read_csv("C:/Users/robert/Dropbox/PSU postdoc/Access text files Bangladesh/HHQPeopleinNW.csv")
 
 # key variables are location and relationship
 WifeNW$relationship <- as.numeric(WifeNW$relationship)
@@ -2017,7 +2097,7 @@ rels$location[rels$location==4|rels$location==5] <- 4
 # subset to only neighbors or closer
 rels <- rels %>% filter(location==2)
 
-M1 <- readRDS("C:/Users/robert/Dropbox/Github/Kin_networks_Bangladesh/results/Childcare_help_rels_neighborsonly_neg_binom.rds")
+M1 <- readRDS("C:/Users/robert/Dropbox/Github/Kin_networks_Bangladesh/results/Rels_who_are_neighbors.rds")
 
 
 ### make fitted lines plots
@@ -2028,9 +2108,6 @@ M1 <- readRDS("C:/Users/robert/Dropbox/Github/Kin_networks_Bangladesh/results/Ch
 #religious_seq <- tibble(religiosity = seq(from = -1, to = 1, by = 1))
 attach(rels)
 nd <- tibble(
-  kids_in_hh = mean(kids_in_hh),
-  age_wife = mean(age_wife),
-  religion=mean(religion),
   familyBariReligiousAfter = c(-1,0,1),
   religious_knowledge_scale=mean(religious_knowledge_scale),
   MI_geo_proximity=mean(MI_geo_proximity),
@@ -2044,7 +2121,9 @@ detach(rels)
 # use new data frame nd
 religious_seq <- tibble(religiosity = seq(from = -1, to = 1, by = 1))
 mu_summary <- fitted(M1,
-                     newdata = nd, probs=c(0.05,0.95)) %>%
+                     newdata = nd, 
+                     allow_new_levels=TRUE,
+                     probs=c(0.05,0.95)) %>%
   as_tibble() %>%
   bind_cols(religious_seq)
 
@@ -2170,12 +2249,7 @@ library(scico)
 setwd("C:/Users/robert/Dropbox/Github/Kin_networks_Bangladesh")
 newdata <- read_csv("newdata.csv")
 options(scipen=999)
-# remove duplicated women
-newdata <- newdata %>% distinct(idwife, .keep_all = TRUE)
-# 1) center and scale variables for easier interpretability fo parameter estimates
-newdata$religious_knowledge_scale <-  newdata$religious_knowledge_scale-mean(newdata$religious_knowledge_scale, na.rm=T)
-newdata$hh_total  <- newdata$hh_total-mean(newdata$hh_total, na.rm=T)  
-newdata$kids_in_hh  <- newdata$kids_in_hh-mean(newdata$kids_in_hh, na.rm=T)
+
 d <- newdata[c(1,5,7,8,9,36,35,44,45,47,49)] # add 36 for non-rels and 35 for rels
 d <- d[complete.cases(d), ] 
 

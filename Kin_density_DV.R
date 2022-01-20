@@ -3,7 +3,7 @@ library(readr)
 library(tidyverse)
 options(scipen = 999)
 # read in the data
-data <- read.csv("final_data.csv")
+data <- read.csv("C:/Users/robert/Dropbox/Github/Kin_networks_Bangladesh/final_data.csv")
 
 names(data)
 ### make sure data is okay- IT IS!!!
@@ -39,7 +39,8 @@ data2 <- d %>% left_join(data,c("idwife"="idwife"))
 
 library(readr)
 #  get HH roster
-PeopleinHH <- read_csv("HHQPeopleinHH.csv")
+PeopleinHH  <- read_csv("C:/Users/robert/Dropbox/PSU postdoc/Access text files Bangladesh/HHQpeopleDeID.csv")
+#PeopleinHH <- read_csv("HHQPeopleinHH.csv")
 names(PeopleinHH)
 
 plyr::count(PeopleinHH$relationToRespondent)
@@ -225,10 +226,11 @@ plyr::count(PeopleinHH$relationOther) # find and code in Bangla kinship terms (i
 
 
 # get womens and mens newtworks
-WifeNW <- read_csv("HHQPeopleinNW.csv")
+WifeNW <- read_csv("C:/Users/robert/Dropbox/PSU postdoc/Access text files Bangladesh/HHQPeopleinNW.csv")
 
 # get husbands newtwork
-HusbandNW <- read_csv("HusbandPeopleinNW.csv")
+#HusbandNW <- read_csv("C:/Users/robert/Dropbox/PSU postdoc/Access text files Bangladesh/HusbandPeopleinNW.csv")
+HusbandNW<- read_csv("C:/Users/robert/Dropbox/PSU postdoc/Access text files Bangladesh/HusQnetworkDeID.csv")
 
 names(WifeNW)
 names(HusbandNW )
@@ -241,6 +243,10 @@ plyr::count(WifeNW$relationshipType)
 ### clean this up first
 
 ## Do not use relationshipType!!!!!!!!!!!
+
+# d1<- newdata %>% filter (religion.x == 0)
+# d2<-  newdata %>% filter (religion.x==1)
+
 
 # location:  Location Codes
 #1=khana member,(same household)
@@ -257,7 +263,39 @@ plyr::count(WifeNW$location)
 # 5  230
 # NA 1168
 
-plyr::count(HusbandNW$location)
+plyr::count(WifeNW$relationship)
+# Relation code: 0 = not a relative, 1 = nijer poribar, 2 = babar bari,
+# 3 = mayer bari, 4 = shoshur bari, 5= babar bari far relative, 
+# 6 = mayer bari far relative, 7 = shoshur bari far relative/
+
+# WifeNW$location <- ifelse(WifeNW$location<3,0,
+#                                ifelse(WifeNW$location==3,1,
+#                                       ifelse(WifeNW$location>3&WifeNW$location<6,2,3)))
+# 
+# 
+# WifeNW$relationship <- ifelse(WifeNW$relationship==0,0,
+#                           ifelse(WifeNW$relationship>0 & WifeNW$relationship<8,1,2))
+# w <- WifeNW %>% select(6,8)
+# 
+# # w$location <- ifelse(w$location==0,"non-relative",
+# #                                ifelse(WifeNW$relationship>0 & WifeNW$relationship<8,"relative",0))
+# 
+# 
+# w<- w[complete.cases(w), ]
+# w$relationship2<- as.numeric(w$relationship2)
+# 
+# plyr::count(w$location)
+# 
+# aggregate(location~relationship,FUN=mean,data=w)
+# aggregate(w$relationship, list(w$location), FUN=mean,na.rm = TRUE)
+# 
+# w %>%
+#   group_by(relationship) %>%
+#   summarise_at(vars(location), list(name = mean))
+# 
+# table(w$relationship, w$location)
+# 
+# plyr::count(HusbandNW$location)
 # 1  945
 # 2 3472
 # 3  753
@@ -319,7 +357,7 @@ WifeNW$relationship <- as.numeric(WifeNW$relationship)
 HusbandNW$relationship <- as.numeric(HusbandNW$relationship)
 # count the zeros (e.g. not a relative) (total and as a proportion of network)
 ### clean this up first (no need)
-# wifes realtionshsips
+# wife's relationships
 # 0  799
 # 1 2734
 # 2  217
@@ -384,6 +422,19 @@ wnr <-WifeNW %>% group_by(id_Questionaire) %>% summarise(total=n(),non_rels = su
                                                         rels_loan=sum((q03==1 | q05==1)&relationship>0 & relationship<8,na.rm=T),
                                                         non_rels_loaning=sum((q04==1 | q06==1)&relationship==0,na.rm=T),
                                                         rels_loaning=sum((q04==1 | q06==1)&relationship>0 & relationship<8,na.rm=T),
+                                                        
+                                                        non_rels_small_loan=sum((q03==1)&relationship==0,na.rm=T),
+                                                        non_rels_large_loan=sum((q05==1)&relationship==0,na.rm=T),
+                                                        rels_small_loan=sum((q03==1)&relationship>0 & relationship<8,na.rm=T),
+                                                        rels_large_loan=sum((q05==1)&relationship>0 & relationship<8,na.rm=T),
+                                                        
+                                                        non_rels_small_loaning=sum((q04==1)&relationship==0,na.rm=T),
+                                                        rels_small_loaning=sum((q04==1)&relationship>0 & relationship<8,na.rm=T),
+                                                        non_rels_large_loaning=sum((q06==1)&relationship==0,na.rm=T),
+                                                        rels_large_loaning=sum((q06==1)&relationship>0 & relationship<8,na.rm=T),
+                                                        
+                                                        
+                                                      
                                                         non_rels_ask_advice=sum(q07==1 & relationship==0, na.rm=T),
                                                         rels_ask_advice=sum(q07==1 & relationship>0 & relationship<8, na.rm=T),
                                                         non_rels_asking_advice=sum(q08==1 & relationship==0, na.rm=T),
@@ -394,7 +445,9 @@ wnr <-WifeNW %>% group_by(id_Questionaire) %>% summarise(total=n(),non_rels = su
                                                         rels_time_spent=sum(q11==1 & relationship>0 & relationship<8,na.rm=T),
                                                         non_rels_aid=sum(q12==1 & relationship==0,na.rm=T),
                                                         rels_aid=sum(q12==1 & relationship>0 & relationship<8,na.rm=T))
-## what to do with q09 and prestigePosition ???? ask Mary
+## what to do with q09 and prestigePosition 
+
+
 
 ## yes no rels geo distance is correct
 
@@ -512,7 +565,66 @@ data7$percent_overall_help_rels <- data7$overall_help_rels/(data7$overall_help_r
 
 data7$percent_overall_help_rels_h <- data7$overall_help_rels_h/(data7$overall_help_rels_h+data7$overall_help_non_rels_h)
 
-newdata <- data7 %>% select (1:18,64:88)
+
+### distinguish between small and large loans/ taking and giving
+data7$rels_small_loans <- data7$rels_small_loan+data7$rels_small_loaning+0.001
+
+data7$non_rels_small_loans <- data7$non_rels_small_loan+data7$non_rels_small_loaning+0.001
+
+data7$percent_rels_small_loans <- (data7$rels_small_loans)/(data7$rels_small_loans+data7$non_rels_small_loans)
+
+data7$rels_large_loans <- data7$rels_large_loan+data7$rels_large_loaning+0.001
+
+data7$non_rels_large_loans <- data7$non_rels_large_loan+data7$non_rels_large_loaning+0.001
+
+data7$percent_rels_large_loans <- (data7$rels_large_loans )/(data7$rels_large_loans +data7$non_rels_large_loans)
+
+
+# "non_rels_small_loan"        
+# [28] "non_rels_large_loan"         "rels_small_loan"             "rels_large_loan"            
+# [31] "non_rels_small_loaning"      "rels_small_loaning"          "non_rels_large_loaning"     
+# [34] "rels_large_loaning" 
+
+
+### get small loans between rels and non_rels
+mean(data7$rels_small_loans,na.rm=T)
+#2.542995
+sd(data7$rels_small_loans,na.rm=T)
+#1.926766
+
+mean(data7$non_rels_small_loans,na.rm=T)
+#0.2267218
+sd(data7$non_rels_small_loans,na.rm=T)
+#0.7733877
+
+## get large loans between rels and non_rels
+mean(data7$rels_large_loans,na.rm=T)
+# 0.8920761
+sd(data7$rels_large_loans,na.rm=T)
+# 1.218538
+
+mean(data7$non_rels_large_loans,na.rm=T)
+# 0.09680052
+sd(data7$non_rels_large_loans,na.rm=T)
+#0.3696903
+
+
+### percentages
+# percent of small loans from rels
+mean(data7$percent_rels_small_loans,na.rm=T)
+#0.8484291
+
+# percent of large loans from rels
+mean(data7$percent_rels_large_loans,na.rm=T)
+# 0.7019488
+
+
+
+#####################################################
+
+#### Check after here with selection of variables by  number
+## I added a bunch to distinguish between large and small loans (97:102)
+newdata <- data7 %>% select (1:18,64:102)
 
 # get religion variables
 religion <- read_csv("Main_table_pgs_1-6.csv")
@@ -520,8 +632,8 @@ religion <- religion %>% select (1,2,4:27)
 religion2 <- read_csv("Main_table_pgs_7-9.csv")
 religion2 <-religion2 %>% select (1,131,132)
 # then husbands
-h1 <- read_csv("HusbandMain.csv")
-h1 <- h1 %>% select(1,2,31:55)
+h1 <- read_csv("HusQnetworkDeID.csv")
+#h1 <- h1 %>% select(1,2,31:55)
 
 
 ## RELIGION
@@ -573,45 +685,45 @@ plyr::count(religion$religion)
 #religion[, 2:26][is.na(religion[, 2:26])] <- 0
 
 
-plyr::count(religion$religiousEducationFromSchool) ## 10 people
+plyr::count(religion$religiousEducationFromSchool) ## 10 women, 7  men
 # 1 point
-plyr::count(religion$religiousEducationFromTemple) ## 12 people
+plyr::count(religion$religiousEducationFromTemple) ## 12 women, 4 men
 # 1 point
 # imam/ hujur   -- "religiousEducationFromReligiousLeader"
 # 1 point
-plyr::count(religion$religiousEducationFromReligiousLeader) # 672 people
+plyr::count(religion$religiousEducationFromReligiousLeader) # 672 women, 456 men
 #  family -- "religiousEducationFromFamily" 
-plyr::count(religion$religiousEducationFromFamily) # 158 people
+plyr::count(religion$religiousEducationFromFamily) # 158 women, 85 men
 # no one   -- "religiousEducationFromNoOne" 
-plyr::count(religion$religiousEducationFromNoOne)## exclude this one (only one person)
+plyr::count(religion$religiousEducationFromNoOne)## exclude this one (only one woman) 2 men
 # Relative  -- "religiousEducationFromRelatives"
-plyr::count(religion$religiousEducationFromRelatives) # 25 people
+plyr::count(religion$religiousEducationFromRelatives) # 25 women, 1 man exclude
 # I did not learn -- "religiousEducationNeverLearned"
-plyr::count(religion$religiousEducationNeverLearned) ## exclude this one (only one person)
+plyr::count(religion$religiousEducationNeverLearned) ## 1 women 2 men  exclude
 # others -- "religiousEducationFromOthers"
-plyr::count(religion$religiousEducationFromOthers) ## exclude this one (only 3 persons)
+plyr::count(religion$religiousEducationFromOthers) ## exclude this one (only 3 women, 1 man)
 
 
 # Have you learned to read the Quran? -- "religiousEducationReadReligiousText"
 # yes  no
-plyr::count(religion$religiousEducationReadReligiousText) # 401 yes
+plyr::count(religion$religiousEducationReadReligiousText) # 401 wommen, 126 men
 
 # How much can you read the Quran?  -- "religiousEducationReadTextLevel", "religiousEducationReadTextBangla"       
 # "religiousEducationReadTextSanskrit" 
 plyr::count(religion$religiousEducationReadTextLevel) # 
-religion$religiousEducationReadTextLevel <- dplyr::recode(religion$religiousEducationReadTextLevel, "Can" = 1,"Good" = 2, "Very good"=3)
+religion$religiousEducationReadTextLevel <- dplyr::recode(religion$religiousEducationReadTextLevel, "Can" = 1,"CAN"=1,"Good" = 2, "Very good"=3)
 religion$religiousEducationReadTextLevel[is.na(religion$religiousEducationReadTextLevel)]<- 0 # these are the can't read I am guessing
 
 # Can read while seeing
 # Good at reading 
 # Very good at reading
 
-plyr::count(religion$religiousEducationReadTextBangla) # 28 yes
-plyr::count(religion$religiousEducationReadTextSanskrit) # 1 yes
+plyr::count(religion$religiousEducationReadTextBangla) # 28 wonen, 28 men
+plyr::count(religion$religiousEducationReadTextSanskrit) # 1 woman, 4 men
 
 
 #Did you ever learn to recite from the Qur'an?  -- "religiousEducationReciteText" 
-plyr::count(religion$religiousEducationReciteText)# 59 yes
+plyr::count(religion$religiousEducationReciteText)# 59 women, 38 men
 
 #   If Yes, how much of it did you memorize?? -- "religiousEducationMemorizeTextLevel"
 # All   half    A little Nothing
@@ -625,7 +737,7 @@ religion$religiousEducationMemorizeTextLevel[is.na(religion$religiousEducationMe
 plyr::count(religion$religiousEducationGoneOnUmrah)# 32 yes
 
 #Have you gone on hajj? -- "religiousEducationGoneOnHajj"
-plyr::count(religion$religiousEducationGoneOnHajj) # 41 yes
+plyr::count(religion$religiousEducationGoneOnHajj) # 41 women, 37 men
 
 #How many people in your family have gone on Umrah? -- "religiousEducationNumberFamilyUmrah" 
 plyr::count(religion$religiousEducationNumberFamilyUmrah) # 548 are 0 and 220 are 1 or more
@@ -644,9 +756,9 @@ plyr::count(religion$religiousEducationNumberPilgrimageIndia) # 724 no - but the
 "religiousEducationNumberHolyPlaces"
 plyr::count(religion$religiousEducationNumberHolyPlaces) # 724 no
 
-religion[, 2:26][is.na(religion[, 2:26])] <- 0
+religion[, 31:54][is.na(religion[, 31:54])] <- 0
 
-#####START HERE!!!!
+#####
 religion$religious_knowledge_scale <- religion$religiousEducationFromSchool+religion$religiousEducationFromTemple+
   religion$religiousEducationFromReligiousLeader+religion$religiousEducationFromFamily+religion$religiousEducationFromRelatives-
   religion$religiousEducationFromNoOne-religion$religiousEducationNeverLearned+religion$religiousEducationReadReligiousText+
@@ -661,14 +773,16 @@ plyr::count(religion$religious_knowledge_scale)
 
 # calculate mens religious knowledge score next maybe (from h1)
 # Next step - link to new data
-religion <- religion %>% select (1,2,27)
+religion <- religion %>% select (1,2,105)
 
-newdata <- newdata %>% select (1:43)
+newdata <- newdata %>% select (1:60)
 
 newdata <- newdata %>% left_join (religion,by= c("idwife"="id")) 
 
 # get number of kids and number in HH
-hh <- read_csv("HHQPeopleinHH.csv")
+#hh <- read_csv("C:/Users/robert/Dropbox/PSU postdoc/Access text files Bangladesh/HHQPeopleinHH.csv")
+hh<- read_csv("C:/Users/robert/Dropbox/PSU postdoc/Access text files Bangladesh/HHQpeopleDeID.csv")
+
 
 hh$relationToRespondent <- dplyr::recode(hh$relationToRespondent, "Child" = 1)
 hh$relationToRespondent <- as.numeric(hh$relationToRespondent)
@@ -682,20 +796,154 @@ d1 <- hh %>% group_by(id_Questionaire) %>% summarise(hh_total=n(), kids_in_hh=su
 newdata <- newdata %>% left_join (d1,by= c("idwife"="id_Questionaire")) 
 
 # link to religion 2
-newdata <- newdata %>% left_join (religion2,by= c("idwife"="id")) 
+newdata <- newdata %>% left_join (religion,by= c("idwife"="id")) 
 
 
 write.csv(newdata,"newdata.csv", row.names = FALSE)
 
+#### get mean by religiosity
+aggregate(percent_rels_small_loans~familyBariReligiousAfter,FUN=mean,data=newdata)
+# familyBariReligiousAfter percent_rels_small_loans
+# 1                       -1                0.8246167
+# 2                        0                0.8645227
+# 3                        1                0.8322083
 
+aggregate(percent_rels_large_loans~familyBariReligiousAfter,FUN=mean,data=newdata)
+# familyBariReligiousAfter percent_rels_large_loans
+# 1                       -1                0.6807535
+# 2                        0                0.7080127
+# 3                        1                0.6994994
 
+aggregate(rels_small_loans~familyBariReligiousAfter,FUN=mean,data=newdata)
+# familyBariReligiousAfter rels_small_loans
+# 1                       -1         2.458831
+# 2                        0         2.687567
+# 3                        1         2.358401
+
+aggregate(non_rels_small_loans~familyBariReligiousAfter,FUN=mean,data=newdata)
+# familyBariReligiousAfter non_rels_small_loans
+# 1                       -1            0.3744940
+# 2                        0            0.2149303
+# 3                        1            0.1995560
+
+aggregate(rels_large_loans~familyBariReligiousAfter,FUN=sd,data=newdata)
+# familyBariReligiousAfter rels_large_loans
+# 1                       -1        0.8805181
+# 2                        0        0.8567214
+# 3                        1        0.9468484
+
+aggregate(non_rels_large_loans~familyBariReligiousAfter,FUN=mean,data=newdata)
+# familyBariReligiousAfter non_rels_large_loans
+# 1                       -1            0.1455783
+# 2                        0            0.0731393
+# 3                        1            0.1165235
 ############################################################################
 ############################################################################
 ############################################################################
 ############################################################################HERE!!!!!
 
-  
-  
-  
-  
+# split child care help Q1 and childcare helper Q2
+library(tidyverse)
+library(brms)
+library(readr)
+setwd("C:/Users/robert/Dropbox/Github/Kin_networks_Bangladesh")
+newdata <- read_csv("newdata.csv")
+
+WifeNW <- read_csv("C:/Users/robert/Dropbox/PSU postdoc/Access text files Bangladesh/HHQPeopleinNW.csv")
+
+l <-WifeNW %>% group_by(id_Questionaire) %>% summarise(nonrels_help_childcare=sum(q01==1 & relationship==0,na.rm=T),
+                                                         rels_help_childcare=sum(q01==1 & relationship>0 & relationship<8,na.rm=T),
+                                                         help_nonrels_childcare=sum(q02==1 & relationship==0,na.rm=T),
+                                                         help_rels_childcare=sum(q02==1 & relationship>0 & relationship<8,na.rm=T))
+# link l back to newdata
+
+newdata2 <- newdata %>% left_join(l,by=c('idwife'='id_Questionaire'))
+
+summary(newdata2)
+
+## then analyze helping and getting help with childcare seperately
+
+# use this model
+M1 <- readRDS("C:/Users/robert/Dropbox/Github/Kin_networks_Bangladesh/results/Rels_childcare_intx_with_neighbors.rds")
+#familyBariReligiousAfter                        -0.05      0.04    -0.12     0.02 1.00    18614    12647
+#familyBariReligiousAfter:MI_economic_capital    -0.09      0.04    -0.16    -0.02 1.00    17049    13155
+#need to get d3
+
+d <- newdata2[c(1,7,8,9,36,35,44,45,47,49,51,53:56)] 
+d <- d[complete.cases(d), ] 
+
+
+
+### add variable number of kin in neighborhood to d
+# read in wife NW
+WifeNW <- read_csv("C:/Users/robert/Dropbox/PSU postdoc/Access text files Bangladesh/HHQPeopleinNW.csv")
+
+## key variables are location and relationship
+WifeNW$relationship <- as.numeric(WifeNW$relationship)
+plyr::count(WifeNW$relationship)
+WifeNW$relationship[is.na(WifeNW$relationship)]<- 99
+WifeNW$location[WifeNW$location == 0] <- NA
+WifeNW$location[WifeNW$location >5 ] <- NA
+plyr::count(WifeNW$location)
+z <- WifeNW %>% dplyr::select (2,3,6,8)
+# get location of non relatives
+nr <- z %>% filter (relationship==0)
+r <- z %>% filter (relationship>0 & relationship<8)
+
+#count rels and non rels who location==1 | location==2
+
+nr2 <-nr %>% group_by(id_Questionaire) %>% summarise (neighbor_non_rels = sum(location<3))
+
+# must link nr2 back to d somehow - all missing in nr2 are 0
+d2<- d%>% left_join (nr2, by=c("idwife"="id_Questionaire"))
+# replace NA's in neighbor_rels with 0
+d2$neighbor_non_rels[is.na(d2$neighbor_non_rels)]<-0
+d2$childcare_help_non_rels<- as.integer(d2$childcare_help_non_rels)
+
+r2 <- r %>% group_by(id_Questionaire) %>% summarise (neighbor_rels = sum(location<3))
+# must link nr2 back to d somehow - all missing in nr2 are 0
+d3<- d %>% left_join (r2, by=c("idwife"="id_Questionaire"))
+# replace NA's in neighbor_rels with 0
+d3$neighbor_rels[is.na(d3$neighbor_rels)]<-0
+
+
+#Remake this model for getting helping and giving help
+# getting help
+M2<-brm(rels_help_childcare ~ kids_in_hh+R_NUM_SIBS+neighbor_rels+
+           religion+familyBariReligiousAfter+religious_knowledge_scale+
+           MI_geo_proximity+
+           MI_economic_capital+
+           MI_human_capital+MI_economic_capital*familyBariReligiousAfter, data=d3, family = negbinomial(link = "log", link_shape = "identity"),
+         prior = c(set_prior("normal(0,2)", class = "b")),
+         warmup = 1000, iter = 5000, chains = 4,
+         control = list(adapt_delta = 0.95))
+
+print(summary(M2, prob=0.95,priors=TRUE), digits = 6)
+#familyBariReligiousAfter                     -0.030575  0.044380 -0.118071  0.055920 1.000444    17747    11378
+#familyBariReligiousAfter:MI_economic_capital -0.108247  0.047259 -0.202349 -0.017051 0.999974    16960    11689
+
+
+path<- (paste0("results/"))
+filename <- "Rels_who_help_w_childcare_intx_with_neighbors.rds"
+saveRDS(M2, paste0(path, filename))
+
+
+###### helping relatives with childcare controlling for neighbors with intx
+M3<-brm(help_rels_childcare ~ kids_in_hh+R_NUM_SIBS+neighbor_rels+
+          religion+familyBariReligiousAfter+religious_knowledge_scale+
+          MI_geo_proximity+
+          MI_economic_capital+
+          MI_human_capital+MI_economic_capital*familyBariReligiousAfter, data=d3, family = negbinomial(link = "log", link_shape = "identity"),
+        prior = c(set_prior("normal(0,2)", class = "b")),
+        warmup = 1000, iter = 5000, chains = 4,
+        control = list(adapt_delta = 0.95))
+
+print(summary(M3, prob=0.95,priors=TRUE), digits = 6)
+#familyBariReligiousAfter                     -0.068534  0.051230 -0.170037  0.029766 1.000309    16067    11030
+#familyBariReligiousAfter:MI_economic_capital -0.060699  0.053161 -0.166629  0.041418 1.000298    16313    12005
+
+path<- (paste0("results/"))
+filename <- "Rels_you_help_w_childcare_intx_with_neighbors.rds"
+
+saveRDS(M3, paste0(path, filename))
 

@@ -391,7 +391,7 @@ options(scipen=999)
 # data$religious_knowledge_scale[is.na(data$religious_knowledge_scale)]<-0
 # data$religion[is.na(data$religion)]<-0
 # data$sex <- NULL
-data <- data[c(4,6:8,9,10,18,20,22,28,34,35,36,37,39,41,43,44,45,46,48)] 
+data <- data[c(7:11,19,21,44,45,47,49,51)] 
 data <- data[complete.cases(data), ] 
 # ######
 #####################################################################
@@ -407,7 +407,6 @@ attach(data)
 newdata <- data.frame(
   kids_in_hh = mean(kids_in_hh),
   R_NUM_SIBS=mean(R_NUM_SIBS),
-  age_wife = mean(age_wife),
   religion=mean(religion),
   familyBariReligiousAfter = c(-1,0,1),
   religious_knowledge_scale=mean(religious_knowledge_scale),
@@ -421,7 +420,7 @@ detach(data)
 
 mu_summary <-
   fitted(M1, 
-         newdata = newdata, probs=c(0.05,0.95)) %>%
+         newdata = newdata, allow_new_levels=TRUE, probs=c(0.05,0.95)) %>%
   as_tibble() %>%
   # let's tack on the `religiosity` values from `religious_seq` if necessary (here it is not)
   bind_cols(religious_seq)
@@ -577,7 +576,7 @@ plot(plot1)
 M1 <- readRDS("C:/Users/robert/Dropbox/Github/Kin_networks_Bangladesh/results/non_relatives_in_NW_neg_bin.rds")
 mu_summary <-
   fitted(M1, 
-         newdata = newdata, probs=c(0.05,0.95)) %>%
+         newdata = newdata,allow_new_levels=TRUE, probs=c(0.05,0.95)) %>%
   as_tibble() %>%
   # let's tack on the `religiosity` values from `religious_seq` if necessary (here it is not)
   bind_cols(religious_seq)
@@ -638,7 +637,7 @@ p1 <- p%>%  ggplot(aes(y = 0, x = b_familyBariReligiousAfter)) +
   geom_vline(xintercept = 0 , linetype = "dashed", color="grey") +
   geom_text(aes(x=-0.008389041, label="0.00", y=0.75), colour="black", vjust = 1.2)+
   scale_y_continuous(NULL, breaks = NULL)+
-  scale_x_continuous(name="", breaks=c(-0.2,-0.1,0.0,0.1,0.2),labels=c('-0.2','-0.1','0.0','0.1','0.2'),limits=c(-0.32,0.31))+
+  scale_x_continuous(name="", breaks=c(-0.2,-0.1,0.0,0.1,0.2),labels=c('-0.2','-0.1','0.0','0.1','0.2'),limits=c(-0.32,0.33))+
   theme(panel.grid.major = element_blank(),
         panel.grid.minor = element_blank(),
         panel.background = element_rect(fill="white"),
@@ -674,7 +673,7 @@ plot(plot2)
 M1 <- readRDS("C:/Users/robert/Dropbox/Github/Kin_networks_Bangladesh/results/relatives_in_NW_lognormal.rds")
 mu_summary <-
   fitted(M1, 
-         newdata = newdata, probs=c(0.05,0.95)) %>%
+         newdata = newdata, allow_new_levels=T,probs=c(0.05,0.95)) %>%
   as_tibble() %>%
   # let's tack on the `religiosity` values from `religious_seq` if necessary (here it is not)
   bind_cols(religious_seq)
@@ -729,11 +728,11 @@ range(p$b_familyBariReligiousAfter)
 ## get rid of or change legend on plot below or better yet save it and add it later to grid arrange somewhere
 p1 <- p%>%  ggplot(aes(y = 0, x = b_familyBariReligiousAfter)) +
   stat_halfeye(point_interval = mean_hdi, .width = .95, fill="springgreen4",color="black",show.legend=F)  +
-  geom_vline(xintercept = 0.165511, linetype = "dashed",color="black") +
+  geom_vline(xintercept = 0.1349741, linetype = "dashed",color="black") +
   geom_vline(xintercept = 0 , linetype = "dashed", color="grey") +
-  geom_text(aes(x=0.165511, label="0.17", y=0.75), colour="black", vjust = 1.2)+
+  geom_text(aes(x=0.14, label="0.13", y=0.75), colour="black", vjust = 1.2)+
   scale_y_continuous(NULL, breaks = NULL)+
-  scale_x_continuous(name="", breaks=c(-0.2,-0.1,0.0,0.1,0.2),labels=c('-0.2','-0.1','0.0','0.1','0.2'),limits=c(-0.32,0.31))+
+  scale_x_continuous(name="", breaks=c(0.05,0.1,0.15,0.2),labels=c('0.05','0.10','0.15','0.20'),limits=c(0.02,0.24))+
   theme(panel.grid.major = element_blank(),
         panel.grid.minor = element_blank(),
         panel.background = element_rect(fill="white"),
@@ -767,7 +766,7 @@ plot(plot3)
 M1 <- readRDS("C:/Users/robert/Dropbox/Github/Kin_networks_Bangladesh/results/percent_relatives_in_NW_lognormal.rds")
 mu_summary <-
   fitted(M1, 
-         newdata = newdata, probs=c(0.05,0.95)) %>%
+         newdata = newdata, allow_new_levels=T,probs=c(0.05,0.95)) %>%
   as_tibble() %>%
   # let's tack on the `religiosity` values from `religious_seq` if necessary (here it is not)
   bind_cols(religious_seq)
@@ -878,7 +877,8 @@ p2 <- p%>%  ggplot(aes(y = 0, x = b_familyBariReligiousAfter, fill="")) +
   geom_vline(xintercept = 0 , linetype = "dashed", color="grey") +
   geom_text(aes(x=0.03024811, label="0.03", y=0.75), colour="black", vjust = 1.2)+
   scale_y_continuous(NULL, breaks = NULL)+
-  scale_x_continuous(name="Posterior Distribution", breaks=c(0.01,0.02,0.03,0.04,0.05),labels=c('0.01','0.02','0.03','0.04','0.05'),limits=c(-0.028,0.082))+
+  # scale_x_continuous(name="Posterior Distribution", breaks=c(0.01,0.02,0.03,0.04,0.05),labels=c('0.01','0.02','0.03','0.04','0.05'),
+  #                    limits=c(-0.028,0.082))+
   scale_fill_manual(name = "Posterior distribution", labels = c("95% CI"),values = "springgreen4")  +
   theme(panel.grid.major = element_blank(),
         panel.grid.minor = element_blank(),
@@ -1110,7 +1110,7 @@ theme(legend.position = "none")+
   
   scale_x_discrete(breaks=c("-1","0","1"),name="Religiosity",
                    labels=c("Less", "Equal", "More"))+
- scale_y_continuous(name="Non-relatives helping\nwith childcare",
+ scale_y_continuous(name="Non-kin helping\nwith childcare",
                     breaks=c(0,1), labels=c("0","1"),limits=c(-0.5,1.5))+
 theme_bw() +
 scale_colour_discrete(name = "Credibility Interval", labels = c("+/- 97.5%")) +
@@ -1174,7 +1174,7 @@ fig10  <- grid.arrange(fig10,p1,ncol=2)
 plot(fig10)
 #######################################################################################################################
 #######################################################################################################################
-# Relatives who help with childcare
+# kin who help with childcare
 M1 <- readRDS("C:/Users/robert/Dropbox/Github/Kin_networks_Bangladesh/results/childcare_help_rels_neg_binom.rds")
 
 religious_seq <- tibble(religiosity = seq(from = -1, to = 1, by = 1))
@@ -1214,7 +1214,7 @@ fig10.1 <- ggplot(data2, aes(x=factor(religiosity), y=childcare_help_rels,fill=f
   
   scale_x_discrete(breaks=c("-1","0","1"),name="Religiosity",
                    labels=c("Less", "Equal", "More"))+
-  scale_y_continuous(name="Relatives helping\nwith childcare",
+  scale_y_continuous(name="kin helping\nwith childcare",
                      breaks=c(0,1,2,3,4,5), labels=c("0","1","2","3","4","5"),limits=c(-0.5,6.5))+
   theme_bw() +
   
@@ -1283,7 +1283,7 @@ plot(fig10.1)
 
 #######################################################################################################################
 #######################################################################################################################
-# Percent relatives who help with childcare
+# Percent kin who help with childcare
 # M1 <- readRDS("C:/Users/robert/Dropbox/Github/Kin_networks_Bangladesh/results/percent_rels_childcare_help_beta.rds")
 # 
 # mu_summary <-
@@ -1418,7 +1418,7 @@ fig7 <- ggplot(data2, aes(x=factor(religiosity), y=emot_support_rels,fill=factor
   
   scale_x_discrete(breaks=c("-1","0","1"),name="Religiosity",
                    labels=c("Less", "Equal", "More"))+
-  scale_y_continuous(name="Relatives providing\nemotional support",
+  scale_y_continuous(name="Kin providing\nemotional support",
                      breaks=c(0,3,6,9,12), labels=c("0","3","6","9","12"),limits=c(0,13))+
   theme_bw() +
   
@@ -1525,7 +1525,7 @@ fig8 <- ggplot(data2, aes(x=factor(religiosity), y=overall_help_rels,fill=factor
 
   scale_x_discrete(breaks=c("-1","0","1"),name="Religiosity",
                    labels=c("Less", "Equal", "More"))+
-  scale_y_continuous(name="Overall help from relatives",
+  scale_y_continuous(name="Overall help from kin",
                      breaks=c(5,10,15,20,25), labels=c("5","10","15","20","25"),limits=c(0,30))+
   theme_bw() +
 
@@ -1771,7 +1771,7 @@ ggsave("childcare_help_non_rels.pdf", fig10,width = 12, height = 10, units = "cm
 library(gridExtra)
 library(cowplot)
 
-#Figure 2 - geo distance
+#Figure 1 - geo distance
 ########################################################################################
 ########################################################################################
 ########################################################################################
@@ -1788,16 +1788,16 @@ setwd("C:/Users/robert/Dropbox/Github/Kin_networks_Bangladesh")
 newdata <- read_csv("newdata.csv")
 options(scipen=999)
 # remove duplicated women
-newdata <- newdata %>% distinct(idwife, .keep_all = TRUE)
+# newdata <- newdata %>% distinct(idwife, .keep_all = TRUE)
 # 1) center and scale variables for easier interpretability fo parameter estimates
 newdata$religious_knowledge_scale <-  newdata$religious_knowledge_scale-mean(newdata$religious_knowledge_scale, na.rm=T)
 newdata$hh_total  <- newdata$hh_total-mean(newdata$hh_total, na.rm=T)  
 newdata$kids_in_hh  <- newdata$kids_in_hh-mean(newdata$kids_in_hh, na.rm=T)
-d <- newdata[c(1,5,7,8,9,44,45,47,49)] 
+d <- newdata[c(1,5,7,8,9,44,45,47,49,51)] 
 d <- d[complete.cases(d), ] 
 
 # read in wife NW
-WifeNW <- read_csv("HHQPeopleinNW.csv")
+WifeNW <- read_csv("C:/Users/robert/Dropbox/PSU postdoc/Access text files Bangladesh/HHQPeopleinNW.csv")
 
 # key variables are location and relationship
 WifeNW$relationship <- as.numeric(WifeNW$relationship)
@@ -1838,7 +1838,7 @@ M1 <- readRDS("C:/Users/robert/Dropbox/Github/Kin_networks_Bangladesh/results/Ge
 attach(non_rels)
 nd <- tibble(
   kids_in_hh = mean(kids_in_hh),
-  age_wife = mean(age_wife),
+  R_NUM_SIBS=mean(R_NUM_SIBS),
   religion=mean(religion),
   familyBariReligiousAfter = c(-1,0,1),
   religious_knowledge_scale=mean(religious_knowledge_scale),
@@ -1852,33 +1852,36 @@ detach(non_rels)
 ### fine now make error bars plot
 # use new data frame nd
 religious_seq <- tibble(religiosity = seq(from = -1, to = 1, by = 1))
-mu_summary <- fitted(M1,
+mu_summary <- fitted(M1,allow_new_levels=TRUE,
                      newdata = nd, probs=c(0.05,0.95)) %>%
   as_tibble() %>%
   bind_cols(religious_seq)
 
 
-j1 <- mu_summary %>% select (1:4,21)
-j1$location <- 1
+####HERE !!!!
+
+
+j1 <- mu_summary %>% select (1:4,17)
+j1$location <- 2
 names(j1) <- c("estimate","error","5CI","95CI","religiosity","location")
 
-j2 <- mu_summary %>% select (5:8,21)
+j2 <- mu_summary %>% select (5:8,17)
 j2$location <- 2
 names(j2) <- c("estimate","error","5CI","95CI","religiosity","location")
 
-j3 <- mu_summary %>% select (9:12,21)
+j3 <- mu_summary %>% select (9:12,17)
 j3$location <- 3
 names(j3) <- c("estimate","error","5CI","95CI","religiosity","location")
 
-j4 <- mu_summary %>% select (13:16,21)
+j4 <- mu_summary %>% select (13:16,17)
 j4$location <- 4
 names(j4) <- c("estimate","error","5CI","95CI","religiosity","location")
 
-j5 <- mu_summary %>% select (17:20,21)
-j5$location <- 5
-names(j5) <- c("estimate","error","5CI","95CI","religiosity","location")
+# j5 <- mu_summary %>% select (17:20,21)
+# j5$location <- 5
+# names(j5) <- c("estimate","error","5CI","95CI","religiosity","location")
 
-mu_summary <- rbind(j1,j2,j3,j4,j5)
+mu_summary <- rbind(j1,j2,j3,j4)
 
 mu_summary$lower <- mu_summary$`5CI`
 mu_summary$upper <- mu_summary$`95CI`
@@ -1958,20 +1961,18 @@ plot1 <- plot1 +
 
 library(tidybayes)
 p <-  M1 %>%
-  spread_draws(`b_Intercept[2]`,`b_Intercept[3]`,`b_Intercept[4]`,b_familyBariReligiousAfter) %>%
-  mutate(condition_mean1 = `b_Intercept[2]`  + b_familyBariReligiousAfter,
-         condition_mean2=`b_Intercept[3]`+b_familyBariReligiousAfter,
-         condition_mean3=`b_Intercept[4]`+b_familyBariReligiousAfter)
+  spread_draws(b_familyBariReligiousAfter)
+mean(p$b_familyBariReligiousAfter)
+range(p$b_familyBariReligiousAfter)
 
 ## get rid of or change legend on plot below or better yet save it and add it later to grid arrange somewhere
-p1 <- p%>%  ggplot(aes(y = 0, x = condition_mean1)) +
-  stat_halfeye(point_interval = mean_hdi, .width = .95, fill="springgreen4",color="black",show.legend=T)  +
-  geom_vline(xintercept = 1.708, linetype = "dashed",color="black") +
+p1 <- p%>%  ggplot(aes(y = 0, x = b_familyBariReligiousAfter)) +
+  stat_halfeye(point_interval = mean_hdi, .width = .95, fill="springgreen4",color="black",show.legend=F)  +
+  geom_vline(xintercept = 0.5211703, linetype = "dashed",color="black") +
   geom_vline(xintercept = 0 , linetype = "dashed", color="grey") +
-  
-  geom_text(aes(x=1.708, label="1.71", y=0.75), colour="black", vjust = 1.2)+
+  geom_text(aes(x=0.54, label="0.52", y=0.75), colour="black", vjust = 1.2)+
   scale_y_continuous(NULL, breaks = NULL)+
-  scale_x_continuous(name="", breaks=c(0,2,4,6),labels=c('0','2','4','6'),limits=c(-1,8))+
+  scale_x_continuous(name="", breaks=c(0.25,0.5,0.75,1.0),labels=c('0.25','0.50','0.75','1.0'),limits=c(-0.05,1.13))+
   theme(panel.grid.major = element_blank(),
         panel.grid.minor = element_blank(),
         panel.background = element_rect(fill="white"),
@@ -1980,59 +1981,97 @@ p1 <- p%>%  ggplot(aes(y = 0, x = condition_mean1)) +
         legend.box.background = element_blank(),
         
         axis.text.x = element_text(colour="grey20",size=10,angle=0,face="bold"),
-        axis.text.y = element_text(colour="grey20",size=10,angle=0,hjust=0,vjust=0,face="bold"),  
-        axis.title.x = element_text(colour="black",size=10,angle=0,hjust=.5,vjust=0,face="bold"),
+        axis.text.y = element_text(colour="grey20",size=10,angle=0,hjust=0,vjust=0,face="bold"),
+        axis.title.x = element_text(colour="black",size=12,angle=0,hjust=.5,vjust=0,face="bold"),
         axis.title.y = element_text(colour="black",size=14,angle=90,hjust=0.5,vjust=1,face="bold"),
         strip.text.x = element_text(size = 12, color = "white", face = "bold"),
-        strip.background = element_rect(color="white", fill="black", size=1, linetype="solid")) +
-  theme(legend.position = "none") 
+        strip.background = element_rect(color="white", fill="black", size=1, linetype="solid"))
 
 p1
 
-p2 <- p%>%  ggplot(aes(y = 0, x = condition_mean2)) +
-  stat_halfeye(point_interval = mean_hdi, .width = .95, fill="springgreen4",color="black",show.legend=T)  +
-  geom_vline(xintercept = 3.1066, linetype = "dashed",color="black") +
-  geom_vline(xintercept = 0 , linetype = "dashed", color="grey") +
-  geom_text(aes(x=3.1066, label="3.10", y=0.75), colour="black", vjust = 1.2)+
-  scale_y_continuous(NULL, breaks = NULL)+
-  scale_x_continuous(name="", breaks=c(0,2,4,6),labels=c('0','2','4','6'),limits=c(-1,8))+
-  theme(panel.grid.major = element_blank(),
-        panel.grid.minor = element_blank(),
-        panel.background = element_rect(fill="white"),
-        legend.key.size = unit(0.15, "in"),
-        legend.key = element_rect(colour = "transparent", fill = NA),
-        legend.box.background = element_blank(),
-        
-        axis.text.x = element_text(colour="grey20",size=10,angle=0,face="bold"),
-        axis.text.y = element_text(colour="grey20",size=10,angle=0,hjust=0,vjust=0,face="bold"),  
-        axis.title.x = element_text(colour="black",size=10,angle=0,hjust=.5,vjust=0,face="bold"),
-        axis.title.y = element_text(colour="black",size=14,angle=90,hjust=0.5,vjust=1,face="bold"),
-        strip.text.x = element_text(size = 12, color = "white", face = "bold"),
-        strip.background = element_rect(color="white", fill="black", size=1, linetype="solid"))+
-  theme(legend.position = "none")  
-p2
 
-p3 <- p%>%  ggplot(aes(y = 0, x = condition_mean3)) +
-  stat_halfeye(point_interval = mean_hdi, .width = .95, fill="springgreen4",color="black",show.legend=T)  +
-  geom_vline(xintercept = 4.959, linetype = "dashed", color="black") +
-  geom_text(aes(x=4.959, label="4.96", y=0.75), colour="black", vjust = 1.2)+
-  geom_vline(xintercept = 0 , linetype = "dashed", color="grey") +
-  scale_y_continuous(NULL, breaks = NULL)+
-  scale_x_continuous(name="Posterior distribution", breaks=c(0,2,4,6),labels=c('0','2','4','6'),limits=c(-1,8))+
-  theme(panel.grid.major = element_blank(),
-        panel.grid.minor = element_blank(),
-        panel.background = element_rect(fill="white"),
-        legend.key.size = unit(0.15, "in"),
-        legend.key = element_rect(colour = "transparent", fill = NA),
-        legend.box.background = element_blank(),
-        
-        axis.text.x = element_text(colour="grey20",size=10,angle=0,face="bold"),
-        axis.text.y = element_text(colour="grey20",size=10,angle=0,hjust=0,vjust=0,face="bold"),  
-        axis.title.x = element_text(colour="black",size=10,angle=0,hjust=.5,vjust=0,face="bold"),
-        axis.title.y = element_text(colour="black",size=14,angle=90,hjust=0.5,vjust=1,face="bold"),
-        strip.text.x = element_text(size = 12, color = "white", face = "bold"),
-        strip.background = element_rect(color="white", fill="black", size=1, linetype="solid")) +
-  theme(legend.position = "none") 
+# p <-  M1 %>%
+#   spread_draws(`b_Intercept[1]`,`b_Intercept[2]`,`b_Intercept[3]`,b_familyBariReligiousAfter) %>%
+#   mutate(condition_mean1 = `b_Intercept[1]`  + b_familyBariReligiousAfter,
+#          condition_mean2=`b_Intercept[2]`+b_familyBariReligiousAfter,
+#          condition_mean3=`b_Intercept[3]`+b_familyBariReligiousAfter)
+# 
+# # mean(p$condition_mean1)
+# # 1 -5.239223
+# #2    2.518384
+# #3    3.931632
+# 
+# ## get rid of or change legend on plot below or better yet save it and add it later to grid arrange somewhere
+# p1 <- p%>%  ggplot(aes(y = 0, x = condition_mean1)) +
+#   stat_halfeye(point_interval = mean_hdi, .width = .95, fill="springgreen4",
+#                color="black",show.legend=T)  +
+#   geom_vline(xintercept = -5.239223, linetype = "dashed",color="black") +
+#   geom_vline(xintercept = 0 , linetype = "dashed", color="grey") +
+#   
+#   geom_text(aes(x=-5.239223, label="-5.2", y=0.75), colour="black", vjust = 1.2)+
+#   scale_y_continuous(NULL, breaks = NULL)+
+#   scale_x_continuous(name="", breaks=c(-7,-6,-5,-4,-3),labels=c('-7','-6','-5','-4','-3'),limits=c(-8.5,0.5))+
+#   theme(panel.grid.major = element_blank(),
+#         panel.grid.minor = element_blank(),
+#         panel.background = element_rect(fill="white"),
+#         legend.key.size = unit(0.15, "in"),
+#         legend.key = element_rect(colour = "transparent", fill = NA),
+#         legend.box.background = element_blank(),
+#         
+#         axis.text.x = element_text(colour="grey20",size=10,angle=0,face="bold"),
+#         axis.text.y = element_text(colour="grey20",size=10,angle=0,hjust=0,vjust=0,face="bold"),  
+#         axis.title.x = element_text(colour="black",size=10,angle=0,hjust=.5,vjust=0,face="bold"),
+#         axis.title.y = element_text(colour="black",size=14,angle=90,hjust=0.5,vjust=1,face="bold"),
+#         strip.text.x = element_text(size = 12, color = "white", face = "bold"),
+#         strip.background = element_rect(color="white", fill="black", size=1, linetype="solid")) +
+#   theme(legend.position = "none") 
+# 
+# p1
+# 
+# p2 <- p%>%  ggplot(aes(y = 0, x = condition_mean2)) +
+#   stat_halfeye(point_interval = mean_hdi, .width = .95, fill="springgreen4",color="black",show.legend=T)  +
+#   geom_vline(xintercept = 3.1066, linetype = "dashed",color="black") +
+#   geom_vline(xintercept = 0 , linetype = "dashed", color="grey") +
+#   geom_text(aes(x=3.1066, label="3.10", y=0.75), colour="black", vjust = 1.2)+
+#   scale_y_continuous(NULL, breaks = NULL)+
+#   scale_x_continuous(name="", breaks=c(0,2,4,6),labels=c('0','2','4','6'),limits=c(-1,8))+
+#   theme(panel.grid.major = element_blank(),
+#         panel.grid.minor = element_blank(),
+#         panel.background = element_rect(fill="white"),
+#         legend.key.size = unit(0.15, "in"),
+#         legend.key = element_rect(colour = "transparent", fill = NA),
+#         legend.box.background = element_blank(),
+#         
+#         axis.text.x = element_text(colour="grey20",size=10,angle=0,face="bold"),
+#         axis.text.y = element_text(colour="grey20",size=10,angle=0,hjust=0,vjust=0,face="bold"),  
+#         axis.title.x = element_text(colour="black",size=10,angle=0,hjust=.5,vjust=0,face="bold"),
+#         axis.title.y = element_text(colour="black",size=14,angle=90,hjust=0.5,vjust=1,face="bold"),
+#         strip.text.x = element_text(size = 12, color = "white", face = "bold"),
+#         strip.background = element_rect(color="white", fill="black", size=1, linetype="solid"))+
+#   theme(legend.position = "none")  
+# p2
+# 
+# p3 <- p%>%  ggplot(aes(y = 0, x = condition_mean3)) +
+#   stat_halfeye(point_interval = mean_hdi, .width = .95, fill="springgreen4",color="black",show.legend=T)  +
+#   geom_vline(xintercept = 4.959, linetype = "dashed", color="black") +
+#   geom_text(aes(x=4.959, label="4.96", y=0.75), colour="black", vjust = 1.2)+
+#   geom_vline(xintercept = 0 , linetype = "dashed", color="grey") +
+#   scale_y_continuous(NULL, breaks = NULL)+
+#   scale_x_continuous(name="Posterior distribution", breaks=c(0,2,4,6),labels=c('0','2','4','6'),limits=c(-1,8))+
+#   theme(panel.grid.major = element_blank(),
+#         panel.grid.minor = element_blank(),
+#         panel.background = element_rect(fill="white"),
+#         legend.key.size = unit(0.15, "in"),
+#         legend.key = element_rect(colour = "transparent", fill = NA),
+#         legend.box.background = element_blank(),
+#         
+#         axis.text.x = element_text(colour="grey20",size=10,angle=0,face="bold"),
+#         axis.text.y = element_text(colour="grey20",size=10,angle=0,hjust=0,vjust=0,face="bold"),  
+#         axis.title.x = element_text(colour="black",size=10,angle=0,hjust=.5,vjust=0,face="bold"),
+#         axis.title.y = element_text(colour="black",size=14,angle=90,hjust=0.5,vjust=1,face="bold"),
+#         strip.text.x = element_text(size = 12, color = "white", face = "bold"),
+#         strip.background = element_rect(color="white", fill="black", size=1, linetype="solid")) +
+#   theme(legend.position = "none") 
 
 
 ## use grid arrange to put plots in order
@@ -2042,8 +2081,8 @@ library(ggplot2)
 library(lattice)         
 
 
-x   <- grid.arrange(p1,p2,p3,nrow=3)
-geo_non_kin <- grid.arrange(plot1,x, ncol=2, top = textGrob("Number of non-kin living in:",gp=gpar(fontsize=18,font="bold")))   
+x   <- grid.arrange(p1,nrow=1)
+geo_non_kin <- grid.arrange(plot1,x, ncol=2, top = textGrob("Number of non-kin living in",gp=gpar(fontsize=18,font="bold")))   
 geo_non_kin
 
 ##################################################################################
@@ -2053,40 +2092,7 @@ library(tidyverse)
 library(brms)
 library(readr)
 library(scico)
-library(facetscales)
-#####READ in and filter newdata
-setwd("C:/Users/robert/Dropbox/Github/Kin_networks_Bangladesh")
-newdata <- read_csv("newdata.csv")
-options(scipen=999)
-# remove duplicated women
-newdata <- newdata %>% distinct(idwife, .keep_all = TRUE)
-# 1) center and scale variables for easier interpretability fo parameter estimates
-newdata$religious_knowledge_scale <-  newdata$religious_knowledge_scale-mean(newdata$religious_knowledge_scale, na.rm=T)
-newdata$hh_total  <- newdata$hh_total-mean(newdata$hh_total, na.rm=T)  
-newdata$kids_in_hh  <- newdata$kids_in_hh-mean(newdata$kids_in_hh, na.rm=T)
-d <- newdata[c(1,5,7,8,9,44,45,47,49)] 
-d <- d[complete.cases(d), ] 
 
-# read in wife NW
-WifeNW <- read_csv("HHQPeopleinNW.csv")
-
-# key variables are location and relationship
-WifeNW$relationship <- as.numeric(WifeNW$relationship)
-plyr::count(WifeNW$relationship)
-WifeNW$relationship[is.na(WifeNW$relationship)]<- 99
-WifeNW$location[WifeNW$location == 0] <- NA
-WifeNW$location[WifeNW$location >5 ] <- NA
-plyr::count(WifeNW$location)
-
-
-z <- WifeNW %>% dplyr::select (2,3,6,8)
-
-# get location of non relatives
-nr <- z %>% filter (relationship==0)
-r <- z %>% filter (relationship>0 & relationship<8)
-
-# get non relatives
-# join non-rels to data (d)
 rels <- r %>% left_join (d, by=c("id_Questionaire"="idwife"))
 rels <- rels[complete.cases(rels),]
 
@@ -2113,8 +2119,8 @@ M1 <- readRDS("C:/Users/robert/Dropbox/Github/Kin_networks_Bangladesh/results/Ge
 attach(rels)
 nd <- tibble(
   kids_in_hh = mean(kids_in_hh),
-  age_wife = mean(age_wife),
   religion=mean(religion),
+  R_NUM_SIBS=mean(R_NUM_SIBS),
   familyBariReligiousAfter = c(-1,0,1),
   religious_knowledge_scale=mean(religious_knowledge_scale),
   MI_geo_proximity=mean(MI_geo_proximity),
@@ -2128,32 +2134,27 @@ detach(rels)
 # use new data frame nd
 religious_seq <- tibble(religiosity = seq(from = -1, to = 1, by = 1))
 mu_summary <- fitted(M1,
-                     newdata = nd, probs=c(0.05,0.95)) %>%
+                     newdata = nd, allow_new_levels=TRUE,probs=c(0.05,0.95)) %>%
   as_tibble() %>%
   bind_cols(religious_seq)
 
-
-j1 <- mu_summary %>% select (1:4,21)
-j1$location <- 1
+j1 <- mu_summary %>% select (1:4,17)
+j1$location <- 2
 names(j1) <- c("estimate","error","5CI","95CI","religiosity","location")
 
-j2 <- mu_summary %>% select (5:8,21)
+j2 <- mu_summary %>% select (5:8,17)
 j2$location <- 2
 names(j2) <- c("estimate","error","5CI","95CI","religiosity","location")
 
-j3 <- mu_summary %>% select (9:12,21)
+j3 <- mu_summary %>% select (9:12,17)
 j3$location <- 3
 names(j3) <- c("estimate","error","5CI","95CI","religiosity","location")
 
-j4 <- mu_summary %>% select (13:16,21)
+j4 <- mu_summary %>% select (13:16,17)
 j4$location <- 4
 names(j4) <- c("estimate","error","5CI","95CI","religiosity","location")
 
-j5 <- mu_summary %>% select (17:20,21)
-j5$location <- 5
-names(j5) <- c("estimate","error","5CI","95CI","religiosity","location")
-
-mu_summary <- rbind(j1,j2,j3,j4,j5)
+mu_summary <- rbind(j1,j2,j3,j4)
 
 mu_summary$lower <- mu_summary$`5CI`
 mu_summary$upper <- mu_summary$`95CI`
@@ -2221,9 +2222,9 @@ plot2
 facet_bounds <- read.table(header=TRUE,
                            text=                           
                              "location ymin ymax breaks
-2     0.50     0.54    3
-3     0.08     0.14   3
-4     0.06     0.12    3",
+2     0.72     0.89    3
+3     0.05     0.13    3
+4     0.05     0.16    3",
                            stringsAsFactors=FALSE)
 
 ff <- with(facet_bounds,
@@ -2250,67 +2251,23 @@ plot2 <- plot2 +
 library(tidyverse)
 library(tidybayes)
 
+
+
+library(tidybayes)
 p <-  M1 %>%
-  spread_draws(b_Intercept[1],`b_Intercept[2]`,`b_Intercept[3]`,`b_Intercept[4]`,b_familyBariReligiousAfter) %>%
-  mutate(condition_mean1 = `b_Intercept[2]`  + b_familyBariReligiousAfter,
-         condition_mean2=`b_Intercept[3]`+b_familyBariReligiousAfter,
-         condition_mean3=`b_Intercept[4]`+b_familyBariReligiousAfter)
+  spread_draws(b_familyBariReligiousAfter)
+mean(p$b_familyBariReligiousAfter)
+range(p$b_familyBariReligiousAfter)
 
-## get rid of or chnage legend on plot below or better yet save it and add it later to grid arrange somewhere
-p1 <- p%>%  ggplot(aes(y = 0, x = condition_mean1)) +
-  stat_halfeye(point_interval = mean_hdi, .width = .95, fill="springgreen4",color="black",show.legend=T)  +
-  geom_vline(xintercept = .9501, linetype = "dashed",color="black") +
+## get rid of or change legend on plot below or better yet save it and add it later to grid arrange somewhere
+p1 <- p%>%  ggplot(aes(y = 0, x = b_familyBariReligiousAfter)) +
+  stat_halfeye(point_interval = mean_hdi, .width = .95, fill="springgreen4",color="black",show.legend=F)  +
+  geom_vline(xintercept = 0.1362366, linetype = "dashed",color="black") +
   geom_vline(xintercept = 0 , linetype = "dashed", color="grey") +
-  geom_text(aes(x=0.9501, label="0.95", y=0.75), colour="black", vjust = 1.2)+
+  geom_text(aes(x=0.1462366, label="0.14", y=0.75), colour="black", vjust = 1.2)+
   scale_y_continuous(NULL, breaks = NULL)+
-  scale_x_continuous(name="", breaks=c(0,1,2,3),labels=c('0','1','2','3'),limits=c(-0.1,3.9))+
-  theme(panel.grid.major = element_blank(),
-        panel.grid.minor = element_blank(),
-        panel.background = element_rect(fill="white"),
-        legend.key.size = unit(0.15, "in"),
-        legend.key = element_rect(colour = "transparent", fill = NA),
-        legend.box.background = element_blank(),
-        axis.text.x = element_text(colour="grey20",size=10,angle=0,face="bold"),
-        axis.text.y = element_text(colour="grey20",size=10,angle=0,hjust=0,vjust=0,face="bold"),  
-        axis.title.x = element_text(colour="black",size=10,angle=0,hjust=.5,vjust=0,face="bold"),
-        axis.title.y = element_text(colour="black",size=14,angle=90,hjust=0.5,vjust=1,face="bold"),
-        strip.text.x = element_text(size = 12, color = "white", face = "bold"),
-        strip.background = element_rect(color="white", fill="black", size=1, linetype="solid"),
-        legend.position = "none") 
-
-p1
-
-p2 <- p%>%  ggplot(aes(y = 0, x = condition_mean2)) +
-  stat_halfeye(point_interval = mean_hdi, .width = .95, fill="springgreen4",color="black",show.legend=T)  +
-  geom_vline(xintercept = 1.6931, linetype = "dashed",color="black") +
-  geom_vline(xintercept = 0 , linetype = "dashed", color="grey") +
-  geom_text(aes(x=1.6931, label="1.69", y=0.75), colour="black", vjust = 1.2)+
-  scale_y_continuous(NULL, breaks = NULL)+
-  scale_x_continuous(name="", breaks=c(0,1,2,3),labels=c('0','1','2','3'),limits=c(-0.1,3.9))+
-  theme(panel.grid.major = element_blank(),
-        panel.grid.minor = element_blank(),
-        panel.background = element_rect(fill="white"),
-        legend.key.size = unit(0.15, "in"),
-        legend.key = element_rect(colour = "transparent", fill = NA),
-        legend.box.background = element_blank(),
-       
-        axis.text.x = element_text(colour="grey20",size=10,angle=0,face="bold"),
-        axis.text.y = element_text(colour="grey20",size=10,angle=0,hjust=0,vjust=0,face="bold"),  
-        axis.title.x = element_text(colour="black",size=10,angle=0,hjust=.5,vjust=0,face="bold"),
-        axis.title.y = element_text(colour="black",size=14,angle=90,hjust=0.5,vjust=1,face="bold"),
-        strip.text.x = element_text(size = 12, color = "white", face = "bold"),
-        strip.background = element_rect(color="white", fill="black", size=1, linetype="solid"),
-        legend.position = "none") 
-
-p2
-
-p3 <- p%>%  ggplot(aes(y = 0, x = condition_mean3)) +
-  stat_halfeye(point_interval = mean_hdi, .width = .95, fill="springgreen4",color="black",show.legend=T)  +
-  geom_vline(xintercept = 3.032 , linetype = "dashed", color="black") +
-  geom_vline(xintercept = 0 , linetype = "dashed", color="grey") +
-  geom_text(aes(x=3.032, label="3.03", y=0.75), colour="black", vjust = 1.2)+
-  scale_y_continuous(NULL, breaks = NULL)+
-  scale_x_continuous(name="Posterior Distribution", breaks=c(0,1,2,3),labels=c('0','1','2','3'),limits=c(-0.1,3.9))+
+  scale_x_continuous(name="", breaks=c(0,0.1,0.2,0.3),
+                     labels=c('0','0.10','0.20','0.30'),limits=c(-0.06,0.34))+
   theme(panel.grid.major = element_blank(),
         panel.grid.minor = element_blank(),
         panel.background = element_rect(fill="white"),
@@ -2319,13 +2276,89 @@ p3 <- p%>%  ggplot(aes(y = 0, x = condition_mean3)) +
         legend.box.background = element_blank(),
         
         axis.text.x = element_text(colour="grey20",size=10,angle=0,face="bold"),
-        axis.text.y = element_text(colour="grey20",size=10,angle=0,hjust=0,vjust=0,face="bold"),  
-        axis.title.x = element_text(colour="black",size=10,angle=0,hjust=.5,vjust=0,face="bold"),
+        axis.text.y = element_text(colour="grey20",size=10,angle=0,hjust=0,vjust=0,face="bold"),
+        axis.title.x = element_text(colour="black",size=12,angle=0,hjust=.5,vjust=0,face="bold"),
         axis.title.y = element_text(colour="black",size=14,angle=90,hjust=0.5,vjust=1,face="bold"),
         strip.text.x = element_text(size = 12, color = "white", face = "bold"),
-        strip.background = element_rect(color="white", fill="black", size=1, linetype="solid"),
-        legend.position="none") 
-p3
+        strip.background = element_rect(color="white", fill="black", size=1, linetype="solid"))
+
+p1
+# p <-  M1 %>%
+#   spread_draws(b_Intercept[1],`b_Intercept[2]`,`b_Intercept[3]`,`b_Intercept[4]`,b_familyBariReligiousAfter) %>%
+#   mutate(condition_mean1 = `b_Intercept[2]`  + b_familyBariReligiousAfter,
+#          condition_mean2=`b_Intercept[3]`+b_familyBariReligiousAfter,
+#          condition_mean3=`b_Intercept[4]`+b_familyBariReligiousAfter)
+# 
+# ## get rid of or chnage legend on plot below or better yet save it and add it later to grid arrange somewhere
+# p1 <- p%>%  ggplot(aes(y = 0, x = condition_mean1)) +
+#   stat_halfeye(point_interval = mean_hdi, .width = .95, fill="springgreen4",color="black",show.legend=T)  +
+#   geom_vline(xintercept = .9501, linetype = "dashed",color="black") +
+#   geom_vline(xintercept = 0 , linetype = "dashed", color="grey") +
+#   geom_text(aes(x=0.9501, label="0.95", y=0.75), colour="black", vjust = 1.2)+
+#   scale_y_continuous(NULL, breaks = NULL)+
+#   scale_x_continuous(name="", breaks=c(0,1,2,3),labels=c('0','1','2','3'),limits=c(-0.1,3.9))+
+#   theme(panel.grid.major = element_blank(),
+#         panel.grid.minor = element_blank(),
+#         panel.background = element_rect(fill="white"),
+#         legend.key.size = unit(0.15, "in"),
+#         legend.key = element_rect(colour = "transparent", fill = NA),
+#         legend.box.background = element_blank(),
+#         axis.text.x = element_text(colour="grey20",size=10,angle=0,face="bold"),
+#         axis.text.y = element_text(colour="grey20",size=10,angle=0,hjust=0,vjust=0,face="bold"),  
+#         axis.title.x = element_text(colour="black",size=10,angle=0,hjust=.5,vjust=0,face="bold"),
+#         axis.title.y = element_text(colour="black",size=14,angle=90,hjust=0.5,vjust=1,face="bold"),
+#         strip.text.x = element_text(size = 12, color = "white", face = "bold"),
+#         strip.background = element_rect(color="white", fill="black", size=1, linetype="solid"),
+#         legend.position = "none") 
+# 
+# p1
+# 
+# p2 <- p%>%  ggplot(aes(y = 0, x = condition_mean2)) +
+#   stat_halfeye(point_interval = mean_hdi, .width = .95, fill="springgreen4",color="black",show.legend=T)  +
+#   geom_vline(xintercept = 1.6931, linetype = "dashed",color="black") +
+#   geom_vline(xintercept = 0 , linetype = "dashed", color="grey") +
+#   geom_text(aes(x=1.6931, label="1.69", y=0.75), colour="black", vjust = 1.2)+
+#   scale_y_continuous(NULL, breaks = NULL)+
+#   scale_x_continuous(name="", breaks=c(0,1,2,3),labels=c('0','1','2','3'),limits=c(-0.1,3.9))+
+#   theme(panel.grid.major = element_blank(),
+#         panel.grid.minor = element_blank(),
+#         panel.background = element_rect(fill="white"),
+#         legend.key.size = unit(0.15, "in"),
+#         legend.key = element_rect(colour = "transparent", fill = NA),
+#         legend.box.background = element_blank(),
+#        
+#         axis.text.x = element_text(colour="grey20",size=10,angle=0,face="bold"),
+#         axis.text.y = element_text(colour="grey20",size=10,angle=0,hjust=0,vjust=0,face="bold"),  
+#         axis.title.x = element_text(colour="black",size=10,angle=0,hjust=.5,vjust=0,face="bold"),
+#         axis.title.y = element_text(colour="black",size=14,angle=90,hjust=0.5,vjust=1,face="bold"),
+#         strip.text.x = element_text(size = 12, color = "white", face = "bold"),
+#         strip.background = element_rect(color="white", fill="black", size=1, linetype="solid"),
+#         legend.position = "none") 
+# 
+# p2
+# 
+# p3 <- p%>%  ggplot(aes(y = 0, x = condition_mean3)) +
+#   stat_halfeye(point_interval = mean_hdi, .width = .95, fill="springgreen4",color="black",show.legend=T)  +
+#   geom_vline(xintercept = 3.032 , linetype = "dashed", color="black") +
+#   geom_vline(xintercept = 0 , linetype = "dashed", color="grey") +
+#   geom_text(aes(x=3.032, label="3.03", y=0.75), colour="black", vjust = 1.2)+
+#   scale_y_continuous(NULL, breaks = NULL)+
+#   scale_x_continuous(name="Posterior Distribution", breaks=c(0,1,2,3),labels=c('0','1','2','3'),limits=c(-0.1,3.9))+
+#   theme(panel.grid.major = element_blank(),
+#         panel.grid.minor = element_blank(),
+#         panel.background = element_rect(fill="white"),
+#         legend.key.size = unit(0.15, "in"),
+#         legend.key = element_rect(colour = "transparent", fill = NA),
+#         legend.box.background = element_blank(),
+#         
+#         axis.text.x = element_text(colour="grey20",size=10,angle=0,face="bold"),
+#         axis.text.y = element_text(colour="grey20",size=10,angle=0,hjust=0,vjust=0,face="bold"),  
+#         axis.title.x = element_text(colour="black",size=10,angle=0,hjust=.5,vjust=0,face="bold"),
+#         axis.title.y = element_text(colour="black",size=14,angle=90,hjust=0.5,vjust=1,face="bold"),
+#         strip.text.x = element_text(size = 12, color = "white", face = "bold"),
+#         strip.background = element_rect(color="white", fill="black", size=1, linetype="solid"),
+#         legend.position="none") 
+# p3
 
 ## use grid arrange to put plots in order
 library(gridExtra)
@@ -2335,8 +2368,8 @@ library(lattice)
 library(bayesplot)
 library(cowplot)
 
-x   <- grid.arrange(p1,p2,p3,nrow=3)
-geo_kin <- grid.arrange(plot2,x, ncol=2, top = textGrob("Number of kin living in:",gp=gpar(fontsize=18,font="bold")))
+x   <- grid.arrange(p1,nrow=1)
+geo_kin <- grid.arrange(plot2,x, ncol=2, top = textGrob("Number of kin living in",gp=gpar(fontsize=18,font="bold")))
 plot(geo_kin)
 
 ## make new legend w/o CI
@@ -2398,9 +2431,9 @@ Figure2 <- plot_grid(geo_non_kin, geo_kin,side_row, ncol = 3,
                       rel_widths = c(1, 1, 1/2))
 
 Figure2
-setwd("C:/Users/robert/Dropbox/Github/Kin_networks_Bangladesh/Figures")
+setwd("C:/Users/robert/Dropbox/Github/Kin_networks_Bangladesh/Figures/main figs")
 ggsave("Figure2_geo_distance.pdf", Figure2,width = 32, height = 20, units = "cm")
-
+ggsave("Figure2_geo_distance.png", Figure2,width = 32, height = 20, units = "cm")
 
 ### Align the X axis
 
@@ -2415,262 +2448,427 @@ ggsave("Figure2_geo_distance.pdf", Figure2,width = 32, height = 20, units = "cm"
 
 ### Old geo dist plots for rels and non rels using mean distance
 
-# get mean geo distance  non rels
-M1 <- readRDS("C:/Users/robert/Dropbox/Github/Kin_networks_Bangladesh/results/Geo_distance_non_relatives_lognormal.rds")
-
-## add the dummy variable back
-data$dummy_no_non_rels <- ifelse(data$non_rels==0,1,0)
-data$geo_distance_non_rels[is.na(data$geo_distance_non_rels)] <- 5
-data$dummy_no_non_rels[is.na(data$dummy_no_non_rels)] <- 0
-
-attach(data)
-newdata <- data.frame(
-  kids_in_hh = mean(kids_in_hh),
-  age_wife = mean(age_wife),
-  religion=mean(religion),
-  sex=0,
-  dummy_no_non_rels=mean(dummy_no_non_rels),
-  familyBariReligiousAfter = c(-1,0,1),
-  religious_knowledge_scale=mean(religious_knowledge_scale),
-  MI_geo_proximity=mean(MI_geo_proximity),
-  MI_economic_capital=mean(MI_economic_capital),
-  MI_human_capital=mean(MI_human_capital)
-)
-detach(data)
-
-mu_summary <-
-  fitted(M1, 
-         newdata = newdata, probs=c(0.05,0.95)) %>%
-  as_tibble() %>%
-  bind_cols(religious_seq)
-
-mu_summary
-
-
-data$religiosity <- data$familyBariReligiousAfter
-
-data2 <- data %>% left_join (mu_summary, by =c("religiosity"="religiosity"))
-data2$religiosity[is.na(data2$religiosity)]<- 0
-
-#1=khana member,(same household)
-#2=near bari/neighbor (walking distance), 
-#3=other place in Matlab,
-#4=Other Place in Bangladesh, 
-#5=Abroad, 
-library(wesanderson)
-fig5 <- ggplot(data2, aes(x=factor(religiosity), y=geo_distance_non_rels,fill=factor(religiosity), colour=factor(religiosity))) +
-  geom_boxplot(show.legend=T, width=0.2,fill="transparent",aes(colour=factor(religiosity)))+
-  geom_jitter(width = 0.2,show.legend=T)+
-  
-  
-  geom_smooth(method = 'lm', aes(group=1,y=Estimate,ymin=Q5,ymax=Q95,colour="Credibility interval"),
-              stat = "identity",fill="grey16",colour="black",show.legend=T)+
-  #theme(legend.position = "none")+
-  
-  scale_x_discrete(breaks=c("-1","0","1"),name="Religiosity",
-                   labels=c("Less", "Equal", "More"))+
-  scale_y_continuous(name="Geographic distance non relatives",
-                     breaks=c(1,2,3,4,5), labels=c("Same house","Neighbor","Matlab","Bangladesh","Abroad"),limits=c(1,5))+
-  theme_bw() +
-  
-  # scale_colour_discrete(name = "Credibility Interval", labels = c("+/- 97.5%")) +
-  scale_fill_manual(name = "Boxplots", labels = c("Less religious","Equally religious", "More religious"),
-                    
-                    values=wes_palette(n=4, name="FantasticFox1"),
-                    
-                    
-                    guide = guide_legend(override.aes = list(linetype = c(0, 0,0))))+
-  
-  
-  scale_colour_manual(name = "Credibility Interval", labels = c("+/- 97.5%", "", ""),
-                      values = c(wes_palette(n=4, name="FantasticFox1"),"black"),
-                      
-                      
-                      guide = guide_legend(override.aes = list(linetype = c(1,0,0))))+
-  
-  theme(panel.grid.major = element_blank(),
-        panel.grid.minor = element_blank(),
-        legend.key.size = unit(0.15, "in"),
-        legend.key = element_rect(colour = "transparent", fill = NA),
-        legend.box.background = element_blank(),
-        
-        axis.text.x = element_text(colour="grey20",size=10,angle=0,face="bold"),
-        axis.text.y = element_text(colour="grey20",size=10,angle=0,hjust=0,vjust=0,face="bold"),  
-        axis.title.x = element_text(colour="black",size=12,angle=0,hjust=.5,vjust=0,face="bold"),
-        axis.title.y = element_text(colour="black",size=12,angle=90,hjust=.5,vjust=.5,face="bold"))+
-  theme(legend.position="none")+theme(axis.title.x=element_blank(),
-                                      axis.text.x=element_blank(),
-                                      axis.ticks.x=element_blank())
-
-fig5
-############################################################################################################################################
-# reversed axes
-# get mean geo distance  non rels
-M1 <- readRDS("C:/Users/robert/Dropbox/Github/Kin_networks_Bangladesh/results/Religiosity_predicted_by_geo_distance_non_relatives_normal.rds")
-
-## add the dummy variable back
-data$dummy_no_non_rels <- ifelse(data$non_rels==0,1,0)
-data$geo_distance_non_rels[is.na(data$geo_distance_non_rels)] <- 5
-data$dummy_no_non_rels[is.na(data$dummy_no_non_rels)] <- 0
-
-
-### link data 2 to the location data in Models (for alternative figure)
-
-# read in wife NW
-WifeNW <- read_csv("HHQPeopleinNW.csv")
-
-# key variables are location and relationship
-WifeNW$relationship <- as.numeric(WifeNW$relationship)
-plyr::count(WifeNW$relationship)
-WifeNW$relationship[is.na(WifeNW$relationship)]<- 99
-WifeNW$location[WifeNW$location == 0] <- NA
-WifeNW$location[WifeNW$location >5 ] <- NA
-plyr::count(WifeNW$location)
-# Relationship codes
-#0 = not a relative, 1 = nijer poribar (parents and kids), 2 = babar bari (fathers family- 2nd or 3rd degree relatives),
-#3 = mayer bari (mother side - 2nd or 3rd degree relatives), 4 = shoshur bari (in-laws, affinal), 
-#5= babar bari (far relative), 6 = mayer bari (far relative), 7 = shoshur bari (far relative)
-
-# Location codes
-#1=khana member,(same household)
-#2=near bari/neighbor (walking distance), 
-#3=other place in Matlab,
-#4=Other Place in Bangladesh, 
-#5=Abroad, 
-
-z <- WifeNW %>% dplyr::select (2,3,6,8)
-
-# get location of non relatives
-nr <- z %>% filter (relationship==0)
-r <- z %>% filter (relationship>0 & relationship<8)
-
-# get non relatives
-# join non-rels to data (d)
-non_rels <- nr %>% left_join (data, by=c("id_Questionaire"="idwife"))
-
-
-non_rels$location [is.na(non_rels$location)] <- 2
-hist(non_rels$familyBariReligiousAfter)
-
-attach(non_rels)
-newdata <- data.frame(
-  kids_in_hh = mean(kids_in_hh),
-  age_wife = mean(age_wife),
-  religion=mean(religion),
-  sex=0,
-  dummy_no_non_rels=mean(dummy_no_non_rels),
-  location = c(1,2,3,4,5),
-  religious_knowledge_scale=mean(religious_knowledge_scale),
-  MI_geo_proximity=mean(MI_geo_proximity),
-  MI_economic_capital=mean(MI_economic_capital),
-  MI_human_capital=mean(MI_human_capital)
-)
-detach(non_rels)
-
-mu_summary <-
-  fitted(M1, 
-         newdata = newdata, probs=c(0.05,0.95)) %>%
-  as_tibble() 
-
-mu_summary$location <- c(1,2,3,4,5)
-mu_summary
-
-
-
-
-data2 <- non_rels %>% left_join (mu_summary, by =c("location"="location"))
-
-data2$familyBariReligiousAfter<- as.numeric(data2$familyBariReligiousAfter)
-library(wesanderson)
-fig5a <- ggplot(data2, aes(x=factor(location), y=familyBariReligiousAfter,fill=factor(location), colour=factor(location))) +
-  geom_boxplot(show.legend=T, width=0.2,fill="transparent",aes(colour=factor(location)))+
-  geom_jitter(width = 0.2,show.legend=T)+
-  
-  
-  geom_smooth(method = 'lm', aes(group=1,y=Estimate,ymin=Q5,ymax=Q95,colour="Credibility interval"),
-              stat = "identity",fill="grey16",colour="black",show.legend=T)+
-  #theme(legend.position = "none")+
-  
-  
-  
-  scale_y_continuous(name="Religiosity",
-                     breaks=c(-1,0,1), labels=c("Less", "Equal", "More"),limits=c(-1.2,1.2))+
-  
-  
-  scale_x_discrete(name="Geographic distance non relatives",
-                   breaks=c(1,2,3,4,5), labels=c("Same house","Neighbor","Matlab","Bangladesh","Abroad")) +   #,limits=c(1,5))+
-  theme_bw() +
-  
-  # scale_colour_discrete(name = "Credibility Interval", labels = c("+/- 97.5%")) +
-  scale_fill_manual(name = "Boxplots", labels = c("Less religious","Equally religious", "More religious"),
-                    
-                    values=wes_palette(n=5, name="FantasticFox1"),
-                    
-                    
-                    guide = guide_legend(override.aes = list(linetype = c(0, 0,0,0,0))))+
-  
-  
-  scale_colour_manual(name = "Credibility Interval", labels = c("+/- 97.5%", "", ""),
-                      values = c(wes_palette(n=5, name="FantasticFox1"),"black"),
-                      
-                      
-                      guide = guide_legend(override.aes = list(linetype = c(1,0,0,0,0))))+
-  
-  theme(panel.grid.major = element_blank(),
-        panel.grid.minor = element_blank(),
-        legend.key.size = unit(0.15, "in"),
-        legend.key = element_rect(colour = "transparent", fill = NA),
-        legend.box.background = element_blank(),
-        
-        axis.text.x = element_text(colour="grey20",size=10,angle=0,face="bold"),
-        axis.text.y = element_text(colour="grey20",size=10,angle=0,hjust=0,vjust=0,face="bold"),  
-        axis.title.x = element_text(colour="black",size=12,angle=0,hjust=.5,vjust=0,face="bold"),
-        axis.title.y = element_text(colour="black",size=12,angle=90,hjust=.5,vjust=.5,face="bold")) 
-
-
-
-# +
+# # get mean geo distance  non rels
+# M1 <- readRDS("C:/Users/robert/Dropbox/Github/Kin_networks_Bangladesh/results/Geo_distance_non_relatives_lognormal.rds")
+# 
+# ## add the dummy variable back
+# data$dummy_no_non_rels <- ifelse(data$non_rels==0,1,0)
+# data$geo_distance_non_rels[is.na(data$geo_distance_non_rels)] <- 5
+# data$dummy_no_non_rels[is.na(data$dummy_no_non_rels)] <- 0
+# 
+# attach(data)
+# newdata <- data.frame(
+#   kids_in_hh = mean(kids_in_hh),
+#   age_wife = mean(age_wife),
+#   religion=mean(religion),
+#   sex=0,
+#   dummy_no_non_rels=mean(dummy_no_non_rels),
+#   familyBariReligiousAfter = c(-1,0,1),
+#   religious_knowledge_scale=mean(religious_knowledge_scale),
+#   MI_geo_proximity=mean(MI_geo_proximity),
+#   MI_economic_capital=mean(MI_economic_capital),
+#   MI_human_capital=mean(MI_human_capital)
+# )
+# detach(data)
+# 
+# mu_summary <-
+#   fitted(M1, 
+#          newdata = newdata, probs=c(0.05,0.95)) %>%
+#   as_tibble() %>%
+#   bind_cols(religious_seq)
+# 
+# mu_summary
+# 
+# 
+# data$religiosity <- data$familyBariReligiousAfter
+# 
+# data2 <- data %>% left_join (mu_summary, by =c("religiosity"="religiosity"))
+# data2$religiosity[is.na(data2$religiosity)]<- 0
+# 
+# #1=khana member,(same household)
+# #2=near bari/neighbor (walking distance), 
+# #3=other place in Matlab,
+# #4=Other Place in Bangladesh, 
+# #5=Abroad, 
+# library(wesanderson)
+# fig5 <- ggplot(data2, aes(x=factor(religiosity), y=geo_distance_non_rels,fill=factor(religiosity), colour=factor(religiosity))) +
+#   geom_boxplot(show.legend=T, width=0.2,fill="transparent",aes(colour=factor(religiosity)))+
+#   geom_jitter(width = 0.2,show.legend=T)+
+#   
+#   
+#   geom_smooth(method = 'lm', aes(group=1,y=Estimate,ymin=Q5,ymax=Q95,colour="Credibility interval"),
+#               stat = "identity",fill="grey16",colour="black",show.legend=T)+
+#   #theme(legend.position = "none")+
+#   
+#   scale_x_discrete(breaks=c("-1","0","1"),name="Religiosity",
+#                    labels=c("Less", "Equal", "More"))+
+#   scale_y_continuous(name="Geographic distance non relatives",
+#                      breaks=c(1,2,3,4,5), labels=c("Same house","Neighbor","Matlab","Bangladesh","Abroad"),limits=c(1,5))+
+#   theme_bw() +
+#   
+#   # scale_colour_discrete(name = "Credibility Interval", labels = c("+/- 97.5%")) +
+#   scale_fill_manual(name = "Boxplots", labels = c("Less religious","Equally religious", "More religious"),
+#                     
+#                     values=wes_palette(n=4, name="FantasticFox1"),
+#                     
+#                     
+#                     guide = guide_legend(override.aes = list(linetype = c(0, 0,0))))+
+#   
+#   
+#   scale_colour_manual(name = "Credibility Interval", labels = c("+/- 97.5%", "", ""),
+#                       values = c(wes_palette(n=4, name="FantasticFox1"),"black"),
+#                       
+#                       
+#                       guide = guide_legend(override.aes = list(linetype = c(1,0,0))))+
+#   
+#   theme(panel.grid.major = element_blank(),
+#         panel.grid.minor = element_blank(),
+#         legend.key.size = unit(0.15, "in"),
+#         legend.key = element_rect(colour = "transparent", fill = NA),
+#         legend.box.background = element_blank(),
+#         
+#         axis.text.x = element_text(colour="grey20",size=10,angle=0,face="bold"),
+#         axis.text.y = element_text(colour="grey20",size=10,angle=0,hjust=0,vjust=0,face="bold"),  
+#         axis.title.x = element_text(colour="black",size=12,angle=0,hjust=.5,vjust=0,face="bold"),
+#         axis.title.y = element_text(colour="black",size=12,angle=90,hjust=.5,vjust=.5,face="bold"))+
 #   theme(legend.position="none")+theme(axis.title.x=element_blank(),
-#                                        axis.text.x=element_blank(),
+#                                       axis.text.x=element_blank(),
 #                                       axis.ticks.x=element_blank())
+# 
+# fig5
+# ############################################################################################################################################
+# # reversed axes
+# # get mean geo distance  non rels
+# M1 <- readRDS("C:/Users/robert/Dropbox/Github/Kin_networks_Bangladesh/results/Religiosity_predicted_by_geo_distance_non_relatives_normal.rds")
+# 
+# ## add the dummy variable back
+# data$dummy_no_non_rels <- ifelse(data$non_rels==0,1,0)
+# data$geo_distance_non_rels[is.na(data$geo_distance_non_rels)] <- 5
+# data$dummy_no_non_rels[is.na(data$dummy_no_non_rels)] <- 0
+# 
+# 
+# ### link data 2 to the location data in Models (for alternative figure)
+# 
+# # read in wife NW
+# WifeNW <- read_csv("HHQPeopleinNW.csv")
+# 
+# # key variables are location and relationship
+# WifeNW$relationship <- as.numeric(WifeNW$relationship)
+# plyr::count(WifeNW$relationship)
+# WifeNW$relationship[is.na(WifeNW$relationship)]<- 99
+# WifeNW$location[WifeNW$location == 0] <- NA
+# WifeNW$location[WifeNW$location >5 ] <- NA
+# plyr::count(WifeNW$location)
+# # Relationship codes
+# #0 = not a relative, 1 = nijer poribar (parents and kids), 2 = babar bari (fathers family- 2nd or 3rd degree relatives),
+# #3 = mayer bari (mother side - 2nd or 3rd degree relatives), 4 = shoshur bari (in-laws, affinal), 
+# #5= babar bari (far relative), 6 = mayer bari (far relative), 7 = shoshur bari (far relative)
+# 
+# # Location codes
+# #1=khana member,(same household)
+# #2=near bari/neighbor (walking distance), 
+# #3=other place in Matlab,
+# #4=Other Place in Bangladesh, 
+# #5=Abroad, 
+# 
+# z <- WifeNW %>% dplyr::select (2,3,6,8)
+# 
+# # get location of non relatives
+# nr <- z %>% filter (relationship==0)
+# r <- z %>% filter (relationship>0 & relationship<8)
+# 
+# # get non relatives
+# # join non-rels to data (d)
+# non_rels <- nr %>% left_join (data, by=c("id_Questionaire"="idwife"))
+# 
+# 
+# non_rels$location [is.na(non_rels$location)] <- 2
+# hist(non_rels$familyBariReligiousAfter)
+# 
+# attach(non_rels)
+# newdata <- data.frame(
+#   kids_in_hh = mean(kids_in_hh),
+#   age_wife = mean(age_wife),
+#   religion=mean(religion),
+#   sex=0,
+#   dummy_no_non_rels=mean(dummy_no_non_rels),
+#   location = c(1,2,3,4,5),
+#   religious_knowledge_scale=mean(religious_knowledge_scale),
+#   MI_geo_proximity=mean(MI_geo_proximity),
+#   MI_economic_capital=mean(MI_economic_capital),
+#   MI_human_capital=mean(MI_human_capital)
+# )
+# detach(non_rels)
+# 
+# mu_summary <-
+#   fitted(M1, 
+#          newdata = newdata, probs=c(0.05,0.95)) %>%
+#   as_tibble() 
+# 
+# mu_summary$location <- c(1,2,3,4,5)
+# mu_summary
+# 
+# 
+# 
+# 
+# data2 <- non_rels %>% left_join (mu_summary, by =c("location"="location"))
+# 
+# data2$familyBariReligiousAfter<- as.numeric(data2$familyBariReligiousAfter)
+# library(wesanderson)
+# fig5a <- ggplot(data2, aes(x=factor(location), y=familyBariReligiousAfter,fill=factor(location), colour=factor(location))) +
+#   geom_boxplot(show.legend=T, width=0.2,fill="transparent",aes(colour=factor(location)))+
+#   geom_jitter(width = 0.2,show.legend=T)+
+#   
+#   
+#   geom_smooth(method = 'lm', aes(group=1,y=Estimate,ymin=Q5,ymax=Q95,colour="Credibility interval"),
+#               stat = "identity",fill="grey16",colour="black",show.legend=T)+
+#   #theme(legend.position = "none")+
+#   
+#   
+#   
+#   scale_y_continuous(name="Religiosity",
+#                      breaks=c(-1,0,1), labels=c("Less", "Equal", "More"),limits=c(-1.2,1.2))+
+#   
+#   
+#   scale_x_discrete(name="Geographic distance non relatives",
+#                    breaks=c(1,2,3,4,5), labels=c("Same house","Neighbor","Matlab","Bangladesh","Abroad")) +   #,limits=c(1,5))+
+#   theme_bw() +
+#   
+#   # scale_colour_discrete(name = "Credibility Interval", labels = c("+/- 97.5%")) +
+#   scale_fill_manual(name = "Boxplots", labels = c("Less religious","Equally religious", "More religious"),
+#                     
+#                     values=wes_palette(n=5, name="FantasticFox1"),
+#                     
+#                     
+#                     guide = guide_legend(override.aes = list(linetype = c(0, 0,0,0,0))))+
+#   
+#   
+#   scale_colour_manual(name = "Credibility Interval", labels = c("+/- 97.5%", "", ""),
+#                       values = c(wes_palette(n=5, name="FantasticFox1"),"black"),
+#                       
+#                       
+#                       guide = guide_legend(override.aes = list(linetype = c(1,0,0,0,0))))+
+#   
+#   theme(panel.grid.major = element_blank(),
+#         panel.grid.minor = element_blank(),
+#         legend.key.size = unit(0.15, "in"),
+#         legend.key = element_rect(colour = "transparent", fill = NA),
+#         legend.box.background = element_blank(),
+#         
+#         axis.text.x = element_text(colour="grey20",size=10,angle=0,face="bold"),
+#         axis.text.y = element_text(colour="grey20",size=10,angle=0,hjust=0,vjust=0,face="bold"),  
+#         axis.title.x = element_text(colour="black",size=12,angle=0,hjust=.5,vjust=0,face="bold"),
+#         axis.title.y = element_text(colour="black",size=12,angle=90,hjust=.5,vjust=.5,face="bold")) 
+# 
+# 
+# 
+# # +
+# #   theme(legend.position="none")+theme(axis.title.x=element_blank(),
+# #                                        axis.text.x=element_blank(),
+# #                                       axis.ticks.x=element_blank())
+# 
+# fig5a
+# 
+# 
+# #### Fix legend and plot above - then repeat for figure 6a (geographic distance relatives)
+# #################################################################################################################
+# ####################################################################################################################
+# #################################################################################################################
+# ####################################################################################################################
+# # get mean geo distance rels
+# M1 <- readRDS("C:/Users/robert/Dropbox/Github/Kin_networks_Bangladesh/results/Geo_distance_relatives_lognormal.rds")
+# attach(data)
+# newdata <- data.frame(
+#   kids_in_hh = mean(kids_in_hh),
+#   age_wife = mean(age_wife),
+#   religion=mean(religion),
+#   sex=mean(sex),
+#   familyBariReligiousAfter = c(-1,0,1),
+#   religious_knowledge_scale=mean(religious_knowledge_scale),
+#   MI_geo_proximity=mean(MI_geo_proximity),
+#   MI_economic_capital=mean(MI_economic_capital),
+#   MI_human_capital=mean(MI_human_capital)
+# )
+# detach(data)
+# 
+# mu_summary <-
+#   fitted(M1, 
+#          newdata = newdata, probs=c(0.05,0.95)) %>%
+#   as_tibble() %>%
+#   # let's tack on the `religiosity` values from `religious_seq` if necessary (here it is not)
+#   bind_cols(religious_seq)
+# 
+# mu_summary
+# 
+# 
+# data$religiosity <- data$familyBariReligiousAfter
+# 
+# data2 <- data %>% left_join (mu_summary, by =c("religiosity"="religiosity"))
+# 
+# #1=khana member,(same household)
+# #2=near bari/neighbor (walking distance), 
+# #3=other place in Matlab,
+# #4=Other Place in Bangladesh, 
+# #5=Abroad, 
+# 
+# fig6 <- ggplot(data2, aes(x=factor(religiosity), y=geo_distance_rels,fill=factor(religiosity), colour=factor(religiosity))) +
+#   geom_boxplot(show.legend=T, width=0.2,fill="transparent",aes(colour=factor(religiosity)))+
+#   geom_jitter(width = 0.2,show.legend=T)+
+#   
+#   
+#   geom_smooth(method = 'lm', aes(group=1,y=Estimate,ymin=Q5,ymax=Q95,colour="Credibility interval"),
+#               stat = "identity",fill="grey16",colour="black",show.legend=T)+
+#   #theme(legend.position = "none")+
+#   
+#   scale_x_discrete(breaks=c("-1","0","1"),name="Religiosity",
+#                    labels=c("Less", "Equal", "More"))+
+#   scale_y_continuous(name="Geographic distance relatives",
+#                      breaks=c(1,2,3,4,5), labels=c("Same house","Neighbor","Matlab","Bangladesh","Abroad"),limits=c(1,5))+
+#   theme_bw() +
+#   
+#   # scale_colour_discrete(name = "Credibility Interval", labels = c("+/- 97.5%")) +
+#   scale_fill_manual(name = "Boxplots", labels = c("Less religious","Equally religious", "More religious"),
+#                     
+#                     values=wes_palette(n=4, name="FantasticFox1"),
+#                     
+#                     
+#                     guide = guide_legend(override.aes = list(linetype = c(0, 0,0))))+
+#   
+#   
+#   scale_colour_manual(name = "Credibility Interval", labels = c("+/- 97.5%", "", ""),
+#                       values = c(wes_palette(n=4, name="FantasticFox1"),"black"),
+#                       
+#                       
+#                       guide = guide_legend(override.aes = list(linetype = c(1,0,0))))+
+#   
+#   theme(panel.grid.major = element_blank(),
+#         panel.grid.minor = element_blank(),
+#         legend.key.size = unit(0.15, "in"),
+#         legend.key = element_rect(colour = "transparent", fill = NA),
+#         legend.box.background = element_blank(),
+#         
+#         axis.text.x = element_text(colour="grey20",size=10,angle=0,face="bold"),
+#         axis.text.y = element_text(colour="grey20",size=10,angle=0,hjust=0,vjust=0,face="bold"),  
+#         axis.title.x = element_text(colour="black",size=12,angle=0,hjust=.5,vjust=0,face="bold"),
+#         axis.title.y = element_text(colour="black",size=12,angle=90,hjust=.5,vjust=.5,face="bold"))+
+#   theme(legend.position="none")+theme(axis.title.x=element_blank(),
+#                                       axis.text.x=element_blank(),
+#                                       axis.ticks.x=element_blank())
+# 
+# fig6
+# #####################################################################################################################
+# #####################################################################################################################
+# #####################################################################################################################
+#####################################################################################################################
 
-fig5a
-
-
-#### Fix legend and plot above - then repeat for figure 6a (geographic distance relatives)
-#################################################################################################################
-####################################################################################################################
-#################################################################################################################
-####################################################################################################################
-# get mean geo distance rels
-M1 <- readRDS("C:/Users/robert/Dropbox/Github/Kin_networks_Bangladesh/results/Geo_distance_relatives_lognormal.rds")
-attach(data)
-newdata <- data.frame(
-  kids_in_hh = mean(kids_in_hh),
-  age_wife = mean(age_wife),
-  religion=mean(religion),
-  sex=mean(sex),
-  familyBariReligiousAfter = c(-1,0,1),
-  religious_knowledge_scale=mean(religious_knowledge_scale),
-  MI_geo_proximity=mean(MI_geo_proximity),
-  MI_economic_capital=mean(MI_economic_capital),
-  MI_human_capital=mean(MI_human_capital)
-)
-detach(data)
-
-mu_summary <-
-  fitted(M1, 
-         newdata = newdata, probs=c(0.05,0.95)) %>%
-  as_tibble() %>%
-  # let's tack on the `religiosity` values from `religious_seq` if necessary (here it is not)
-  bind_cols(religious_seq)
-
-mu_summary
-
-
-data$religiosity <- data$familyBariReligiousAfter
-
-data2 <- data %>% left_join (mu_summary, by =c("religiosity"="religiosity"))
+# ## rerun geo dist models first with DV as religiosity
+# library(wesanderson)
+# library(tidyverse)
+# library(brms)
+# 
+# setwd("C:/Users/robert/Dropbox/Github/Kin_networks_Bangladesh")
+# data <- read.csv("newdata.csv")
+# options(scipen=999)
+# data <- data %>% filter (sex==0)
+# 
+# # get mean geo distance  non rels
+# M1 <- readRDS("C:/Users/robert/Dropbox/Github/Kin_networks_Bangladesh/results/Religiosity_predicted_by_geo_distance_non_relatives_normal.rds")
+# 
+# ## add the dummy variable back
+# data$dummy_no_non_rels <- ifelse(data$non_rels==0,1,0)
+# data$geo_distance_non_rels[is.na(data$geo_distance_non_rels)] <- 5
+# data$dummy_no_non_rels[is.na(data$dummy_no_non_rels)] <- 0
+# 
+# attach(data)
+# newdata <- data.frame(
+#   kids_in_hh = mean(kids_in_hh),
+#   age_wife = mean(age_wife),
+#   religion=mean(religion),
+#   sex=mean(sex),
+#   dummy_no_non_rels=mean(dummy_no_non_rels),
+#   geo_distance_non_rels = c(1,2,3,4,5),
+#   religious_knowledge_scale=mean(religious_knowledge_scale),
+#   MI_geo_proximity=mean(MI_geo_proximity),
+#   MI_economic_capital=mean(MI_economic_capital),
+#   MI_human_capital=mean(MI_human_capital)
+# )
+# detach(data)
+# 
+# mu_summary <-
+#   fitted(M1, 
+#          newdata = newdata, probs=c(0.05,0.95)) %>%
+#   as_tibble() 
+# 
+# 
+# 
+# mu_summary$geo_distance_non_rels2 <- c(1,2,3,4,5)
+# 
+# mu_summary <- mu_summary[c(2,4,5),]
+# 
+# # group same house with neighbor and Matlab and Bangladesh together
+# data$geo_distance_non_rels <- round(data$geo_distance_non_rels, digits = 0)
+# data$geo_distance_non_rels2 <- ifelse(data$geo_distance_non_rels==1,2,data$geo_distance_non_rels)
+# data$geo_distance_non_rels2 <- ifelse(data$geo_distance_non_rels2==3,4,data$geo_distance_non_rels2)
+# 
+# plyr::count(data$geo_distance_non_rels2)
+# 
+# data2 <- data %>% left_join (mu_summary, by =c("geo_distance_non_rels2"="geo_distance_non_rels2"))
+# 
+# plyr::count(data2$geo_distance_non_rels2)
+# 
+# 
+# 
+# fig5 <- ggplot(data2, aes(x=factor(geo_distance_non_rels2), y=familyBariReligiousAfter,fill=factor(geo_distance_non_rels2), colour=factor(geo_distance_non_rels2))) +
+#   geom_boxplot(show.legend=T, width=0.2,fill="transparent",aes(colour=factor(geo_distance_non_rels2)))+
+#   geom_jitter(width = 0.2,show.legend=T)+
+#   
+#   
+#   geom_smooth(method = 'lm', aes(group=1,y=Estimate,ymin=Q5,ymax=Q95,colour="Credibility interval"),
+#               stat = "identity",fill="grey16",colour="black",show.legend=T)+
+#   #theme(legend.position = "none")+
+#   
+# 
+#   
+#   scale_x_discrete(name="Geographic distance non-relatives",
+#                      breaks=c(2,4,5), labels=c("Same house\n Or Neighbor","Matlab\n Or Bangladesh","Abroad"))+
+#   
+#   
+#   
+#   scale_y_continuous(name="Relative Religiosity",
+#                      breaks=c(-1,0,1), labels=c("Less","Same","More"),limits=c(-1,1))+
+#   theme_bw() +
+#   
+#   # scale_colour_discrete(name = "Credibility Interval", labels = c("+/- 97.5%")) +
+#   scale_fill_manual(name = "Boxplots", labels = c("Less religious","Equally religious", "More religious"),
+#                     
+#                     values=wes_palette(n=3, name="FantasticFox1"),
+#                     
+#                     
+#                     guide = guide_legend(override.aes = list(linetype = c(0, 0,0))))+
+#   
+#   
+#   scale_colour_manual(name = "Credibility Interval", labels = c("+/- 97.5%", "", ""),
+#                       values = c(wes_palette(n=3, name="FantasticFox1"),"black"),
+#                       
+#                       
+#                       guide = guide_legend(override.aes = list(linetype = c(1,0,0))))+
+#   
+#   theme(panel.grid.major = element_blank(),
+#         panel.grid.minor = element_blank(),
+#         legend.key.size = unit(0.15, "in"),
+#         legend.key = element_rect(colour = "transparent", fill = NA),
+#         legend.box.background = element_blank(),
+#         
+#         axis.text.x = element_text(colour="grey20",size=10,angle=0,face="bold"),
+#         axis.text.y = element_text(colour="grey20",size=10,angle=0,hjust=0,vjust=0,face="bold"),  
+#         axis.title.x = element_text(colour="black",size=12,angle=0,hjust=.5,vjust=0,face="bold"),
+#         axis.title.y = element_text(colour="black",size=12,angle=90,hjust=.5,vjust=.5,face="bold"))+
+#   theme(legend.position="none") #+
+#  # theme(axis.title.x=element_blank(),
+#       #                                axis.text.x=element_blank(),
+#          #                             axis.ticks.x=element_blank())
+# 
+# fig5
 
 #1=khana member,(same household)
 #2=near bari/neighbor (walking distance), 
@@ -2678,450 +2876,285 @@ data2 <- data %>% left_join (mu_summary, by =c("religiosity"="religiosity"))
 #4=Other Place in Bangladesh, 
 #5=Abroad, 
 
-fig6 <- ggplot(data2, aes(x=factor(religiosity), y=geo_distance_rels,fill=factor(religiosity), colour=factor(religiosity))) +
-  geom_boxplot(show.legend=T, width=0.2,fill="transparent",aes(colour=factor(religiosity)))+
-  geom_jitter(width = 0.2,show.legend=T)+
-  
-  
-  geom_smooth(method = 'lm', aes(group=1,y=Estimate,ymin=Q5,ymax=Q95,colour="Credibility interval"),
-              stat = "identity",fill="grey16",colour="black",show.legend=T)+
-  #theme(legend.position = "none")+
-  
-  scale_x_discrete(breaks=c("-1","0","1"),name="Religiosity",
-                   labels=c("Less", "Equal", "More"))+
-  scale_y_continuous(name="Geographic distance relatives",
-                     breaks=c(1,2,3,4,5), labels=c("Same house","Neighbor","Matlab","Bangladesh","Abroad"),limits=c(1,5))+
-  theme_bw() +
-  
-  # scale_colour_discrete(name = "Credibility Interval", labels = c("+/- 97.5%")) +
-  scale_fill_manual(name = "Boxplots", labels = c("Less religious","Equally religious", "More religious"),
-                    
-                    values=wes_palette(n=4, name="FantasticFox1"),
-                    
-                    
-                    guide = guide_legend(override.aes = list(linetype = c(0, 0,0))))+
-  
-  
-  scale_colour_manual(name = "Credibility Interval", labels = c("+/- 97.5%", "", ""),
-                      values = c(wes_palette(n=4, name="FantasticFox1"),"black"),
-                      
-                      
-                      guide = guide_legend(override.aes = list(linetype = c(1,0,0))))+
-  
-  theme(panel.grid.major = element_blank(),
-        panel.grid.minor = element_blank(),
-        legend.key.size = unit(0.15, "in"),
-        legend.key = element_rect(colour = "transparent", fill = NA),
-        legend.box.background = element_blank(),
-        
-        axis.text.x = element_text(colour="grey20",size=10,angle=0,face="bold"),
-        axis.text.y = element_text(colour="grey20",size=10,angle=0,hjust=0,vjust=0,face="bold"),  
-        axis.title.x = element_text(colour="black",size=12,angle=0,hjust=.5,vjust=0,face="bold"),
-        axis.title.y = element_text(colour="black",size=12,angle=90,hjust=.5,vjust=.5,face="bold"))+
-  theme(legend.position="none")+theme(axis.title.x=element_blank(),
-                                      axis.text.x=element_blank(),
-                                      axis.ticks.x=element_blank())
-
-fig6
-#####################################################################################################################
-#####################################################################################################################
-#####################################################################################################################
-#####################################################################################################################
-
-## rerun geo dist models first with DV as religiosity
-library(wesanderson)
-library(tidyverse)
-library(brms)
-
-setwd("C:/Users/robert/Dropbox/Github/Kin_networks_Bangladesh")
-data <- read.csv("newdata.csv")
-options(scipen=999)
-data <- data %>% filter (sex==0)
-
-# get mean geo distance  non rels
-M1 <- readRDS("C:/Users/robert/Dropbox/Github/Kin_networks_Bangladesh/results/Religiosity_predicted_by_geo_distance_non_relatives_normal.rds")
-
-## add the dummy variable back
-data$dummy_no_non_rels <- ifelse(data$non_rels==0,1,0)
-data$geo_distance_non_rels[is.na(data$geo_distance_non_rels)] <- 5
-data$dummy_no_non_rels[is.na(data$dummy_no_non_rels)] <- 0
-
-attach(data)
-newdata <- data.frame(
-  kids_in_hh = mean(kids_in_hh),
-  age_wife = mean(age_wife),
-  religion=mean(religion),
-  sex=mean(sex),
-  dummy_no_non_rels=mean(dummy_no_non_rels),
-  geo_distance_non_rels = c(1,2,3,4,5),
-  religious_knowledge_scale=mean(religious_knowledge_scale),
-  MI_geo_proximity=mean(MI_geo_proximity),
-  MI_economic_capital=mean(MI_economic_capital),
-  MI_human_capital=mean(MI_human_capital)
-)
-detach(data)
-
-mu_summary <-
-  fitted(M1, 
-         newdata = newdata, probs=c(0.05,0.95)) %>%
-  as_tibble() 
-
-
-
-mu_summary$geo_distance_non_rels2 <- c(1,2,3,4,5)
-
-mu_summary <- mu_summary[c(2,4,5),]
-
-# group same house with neighbor and Matlab and Bangladesh together
-data$geo_distance_non_rels <- round(data$geo_distance_non_rels, digits = 0)
-data$geo_distance_non_rels2 <- ifelse(data$geo_distance_non_rels==1,2,data$geo_distance_non_rels)
-data$geo_distance_non_rels2 <- ifelse(data$geo_distance_non_rels2==3,4,data$geo_distance_non_rels2)
-
-plyr::count(data$geo_distance_non_rels2)
-
-data2 <- data %>% left_join (mu_summary, by =c("geo_distance_non_rels2"="geo_distance_non_rels2"))
-
-plyr::count(data2$geo_distance_non_rels2)
-
-
-
-fig5 <- ggplot(data2, aes(x=factor(geo_distance_non_rels2), y=familyBariReligiousAfter,fill=factor(geo_distance_non_rels2), colour=factor(geo_distance_non_rels2))) +
-  geom_boxplot(show.legend=T, width=0.2,fill="transparent",aes(colour=factor(geo_distance_non_rels2)))+
-  geom_jitter(width = 0.2,show.legend=T)+
-  
-  
-  geom_smooth(method = 'lm', aes(group=1,y=Estimate,ymin=Q5,ymax=Q95,colour="Credibility interval"),
-              stat = "identity",fill="grey16",colour="black",show.legend=T)+
-  #theme(legend.position = "none")+
-  
-
-  
-  scale_x_discrete(name="Geographic distance non-relatives",
-                     breaks=c(2,4,5), labels=c("Same house\n Or Neighbor","Matlab\n Or Bangladesh","Abroad"))+
-  
-  
-  
-  scale_y_continuous(name="Relative Religiosity",
-                     breaks=c(-1,0,1), labels=c("Less","Same","More"),limits=c(-1,1))+
-  theme_bw() +
-  
-  # scale_colour_discrete(name = "Credibility Interval", labels = c("+/- 97.5%")) +
-  scale_fill_manual(name = "Boxplots", labels = c("Less religious","Equally religious", "More religious"),
-                    
-                    values=wes_palette(n=3, name="FantasticFox1"),
-                    
-                    
-                    guide = guide_legend(override.aes = list(linetype = c(0, 0,0))))+
-  
-  
-  scale_colour_manual(name = "Credibility Interval", labels = c("+/- 97.5%", "", ""),
-                      values = c(wes_palette(n=3, name="FantasticFox1"),"black"),
-                      
-                      
-                      guide = guide_legend(override.aes = list(linetype = c(1,0,0))))+
-  
-  theme(panel.grid.major = element_blank(),
-        panel.grid.minor = element_blank(),
-        legend.key.size = unit(0.15, "in"),
-        legend.key = element_rect(colour = "transparent", fill = NA),
-        legend.box.background = element_blank(),
-        
-        axis.text.x = element_text(colour="grey20",size=10,angle=0,face="bold"),
-        axis.text.y = element_text(colour="grey20",size=10,angle=0,hjust=0,vjust=0,face="bold"),  
-        axis.title.x = element_text(colour="black",size=12,angle=0,hjust=.5,vjust=0,face="bold"),
-        axis.title.y = element_text(colour="black",size=12,angle=90,hjust=.5,vjust=.5,face="bold"))+
-  theme(legend.position="none") #+
- # theme(axis.title.x=element_blank(),
-      #                                axis.text.x=element_blank(),
-         #                             axis.ticks.x=element_blank())
-
-fig5
-
-#1=khana member,(same household)
-#2=near bari/neighbor (walking distance), 
-#3=other place in Matlab,
-#4=Other Place in Bangladesh, 
-#5=Abroad, 
-
 #################################################################################################################
 ####################################################################################################################
 #################################################################################################################
 ####################################################################################################################
 # get mean geo distance rels
-library(wesanderson)
-library(tidyverse)
-library(brms)
-
-setwd("C:/Users/robert/Dropbox/Github/Kin_networks_Bangladesh")
-data <- read.csv("newdata.csv")
-options(scipen=999)
-data <- data %>% filter (sex==0)
-
-# get mean geo distance  non rels
-M1 <- readRDS("C:/Users/robert/Dropbox/Github/Kin_networks_Bangladesh/results/Religiosity_predicted_by_geo_distance_relatives_normal.rds")
-
-## add the dummy variable back
-
-attach(data)
-newdata <- data.frame(
-  kids_in_hh = mean(kids_in_hh),
-  age_wife = mean(age_wife),
-  religion=mean(religion),
-  sex=mean(sex),
-  #dummy_no_non_rels=mean(dummy_no_non_rels),
-  geo_distance_rels = c(1,2,3,4,5),
-  religious_knowledge_scale=mean(religious_knowledge_scale),
-  MI_geo_proximity=mean(MI_geo_proximity),
-  MI_economic_capital=mean(MI_economic_capital),
-  MI_human_capital=mean(MI_human_capital)
-)
-detach(data)
-
-mu_summary <-
-  fitted(M1, 
-         newdata = newdata, probs=c(0.05,0.95)) %>%
-  as_tibble() 
-
-
-
-mu_summary$geo_distance_rels2 <- c(1,2,3,4,5)
-
-#mu_summary <- mu_summary[c(2,4,5),]
-
-# group same house with neighbor and Matlab and Bangladesh together
-data$geo_distance_rels <- round(data$geo_distance_rels, digits = 0)
-
-
-
-
-data$geo_distance_rels2 <- ifelse(data$geo_distance_rels>3,3,data$geo_distance_rels)
-
-plyr::count(data$geo_distance_rels2)
-##### HERE!!!!!  There are same houshold, neighbor and 
-
-
-data2 <- data %>% left_join (mu_summary, by =c("geo_distance_rels2"="geo_distance_rels2"))
-
-data2$geo_distance_rels2[is.na(data2$geo_distance_rels2)] = 3
-
-plyr::count(data2$geo_distance_rels2)
-
-
-
-fig6 <- ggplot(data2, aes(x=factor(geo_distance_rels2), y=familyBariReligiousAfter,fill=factor(geo_distance_rels2), colour=factor(geo_distance_rels2))) +
-  geom_boxplot(show.legend=T, width=0.2,fill="transparent",aes(colour=factor(geo_distance_rels2)))+
-  geom_jitter(width = 0.2,show.legend=T)+
-  
-  
-  geom_smooth(method = 'lm', aes(group=1,y=Estimate,ymin=Q5,ymax=Q95,colour="Credibility interval"),
-              stat = "identity",fill="grey16",colour="black",show.legend=T)+
-  #theme(legend.position = "none")+
-  
-  
-  
-  scale_x_discrete(name="Geographic distance relatives",
-                   breaks=c(1,2,3), labels=c("Same household", "Neighbor","Matlab\n Or Bangladesh"))+
-  
-  
-  
-  scale_y_continuous(name="Relative Religiosity",
-                     breaks=c(-1,0,1), labels=c("Less","Same","More"),limits=c(-1,1))+
-  theme_bw() +
-  
-  # scale_colour_discrete(name = "Credibility Interval", labels = c("+/- 97.5%")) +
-  scale_fill_manual(name = "Boxplots", labels = c("Less religious","Equally religious", "More religious"),
-                    
-                    values=wes_palette(n=3, name="FantasticFox1"),
-                    
-                    
-                    guide = guide_legend(override.aes = list(linetype = c(0, 0,0))))+
-  
-  
-  scale_colour_manual(name = "Credibility Interval", labels = c("+/- 97.5%", "", ""),
-                      values = c(wes_palette(n=3, name="FantasticFox1"),"black"),
-                      
-                      
-                      guide = guide_legend(override.aes = list(linetype = c(1,0,0))))+
-  
-  theme(panel.grid.major = element_blank(),
-        panel.grid.minor = element_blank(),
-        legend.key.size = unit(0.15, "in"),
-        legend.key = element_rect(colour = "transparent", fill = NA),
-        legend.box.background = element_blank(),
-        
-        axis.text.x = element_text(colour="grey20",size=10,angle=0,face="bold"),
-        axis.text.y = element_text(colour="grey20",size=10,angle=0,hjust=0,vjust=0,face="bold"),  
-        axis.title.x = element_text(colour="black",size=12,angle=0,hjust=.5,vjust=0,face="bold"),
-        axis.title.y = element_text(colour="black",size=12,angle=90,hjust=.5,vjust=.5,face="bold"))+
-  theme(legend.position="none") #+
-# theme(axis.title.x=element_blank(),
-#                                axis.text.x=element_blank(),
-#                             axis.ticks.x=element_blank())
-
-fig6
-
-
-
-## brms figures -- in Mcelreaths book
-#https://bookdown.org/ajkurz/Statistical_Rethinking_recoded/linear-models.html#a-gaussian-model-of-height
-
-
-
-
-# To change the probability intervals
-
-fitted(b4.3, newdata = weight.seq, probs = c(.25, .75))
-
-
-# Plot the Markov Chains
-plot(M1)
-
-
-# Plot the PP checks for key models
-####HERE!!!!!
-pp <- predict(M1)
-
-
-predict(M1, newdata = newdata)
-
-
-
-
-## try to write a function that does all the stuff above but takes a new model each time!!!
-
-mcmc_areas(posterior, pars = c("b_Intercept","b_kids_in_hh","b_age_wife",                
- "b_religion","b_familyBariReligiousAfter","b_religious_knowledge_scale",
- "b_MI_geo_proximity","b_MI_economic_capital","b_MI_human_capital"),
- prob=0.8,
- prob_outer = 0.99,
- point_est = "median")
-
-mcmc_areas(result, pars = c("b_familyBariReligiousAfter","b_religion"))
-
-
-
-posterior1 <- posterior[, , 5]
-posterior2 <- posterior[, , 4]
-
-result <- array(c(posterior1,posterior2),dim=c(1000,4,2))
-
-vector1 <- posterior[, , 5]
-vector2 <- posterior[, , 4]
-column.names <- c("chain:1","chain:2","chain:3","chain:4")
-row.names <- NULL
-matrix.names <- c("b_familyBariReligiousAfter","b_religion")
-
-# Take these vectors as input to the array.
-result <- array(c(vector1,vector2),dim = c(1000,4,2),dimnames = list(row.names,column.names,
-                                                                  matrix.names))
-dimnames(result)[[1]] <- "iterations"
-
-dimnames(ar)[[3]] <- c("G", "H", "I")
-                
-mcmc_areas(
-  result, 
-  pars = pars = c("b_Intercept","b_kids_in_hh","b_age_wife",                
-                  "b_religion","b_familyBariReligiousAfter","b_religious_knowledge_scale",
-                  "b_MI_geo_proximity","b_MI_economic_capital","b_MI_human_capital"),
-  prob = 0.8, 
-  prob_outer = 0.99, 
-  point_est = "median")               
-
-
-#"b_familyBariReligiousAfter" "b_religion"
-
-#### posterior predictive checks
-
-####################################################################################
-## the childcare religiosity X MI interaction model
-
-M1 <- readRDS("C:/Users/robert/Dropbox/Github/Kin_networks_Bangladesh/results/Childcare_help_rels_w_intx.rds")
-
-setwd("C:/Users/robert/Dropbox/Github/Kin_networks_Bangladesh")
-data <- read_csv("newdata.csv")
-
-d <- data[c(35,7:9,44,47,49,51,45)] 
-
-d <- d[complete.cases(d), ] 
-d$childcare_help_rels<-as.integer(d$childcare_help_rels)
-
-# religious_seq <- tibble(religiosity = seq(from = -1, to = 1, by = 1))
-
-attach(d)
-newdata <- tidyr::crossing(  # tidyr::crossing allows you to make df with different variable lengths
-  kids_in_hh = mean(kids_in_hh),
-  R_NUM_SIBS = mean(R_NUM_SIBS),
-  religion=mean(religion),
-  familyBariReligiousAfter = c(-1,0,1),
-  religious_knowledge_scale=mean(religious_knowledge_scale),
-  MI_geo_proximity=mean(MI_geo_proximity),
-  MI_economic_capital=seq(min(MI_economic_capital), max(MI_economic_capital), length.out = 100),
-  MI_human_capital=mean(MI_human_capital)
-) %>% as.data.frame
-detach(d)
-
-
-
-mu_summary <-
-  fitted(M1, 
-         newdata = newdata, probs=c(0.05,0.95)) %>%
-  as_tibble() %>%
-  # let's tack on the `religiosity` values from `religious_seq` if necessary (here it is not)
-  bind_cols(tibble(newdata$familyBariReligiousAfter),tibble(newdata$MI_economic_capital))
- 
-mu_summary
-
-# rename newdata$familyBariReligiousAfter  and newdata$MI_economic_capital
-
-# names(mtcars) <- c("miles_gallon", "cylinders", "display", "horsepower")
-# names(mtcars)
-names(mu_summary)<- c("Estimate","Est.Error","Q5","Q95","familyBariReligiousAfter","MI_economic_capital")
-names(mu_summary)
-
-#fill=factor(familyBariReligiousAfter),
-#data2 <- d %>% left_join (mu_summary, by=c("familyBariReligiousAfter"="familyBariReligiousAfter"))
-colors=c("darkslateblue","springgreen4","salmon4") 
-religiosity <- c('-1' = "Less Religious",'0' = "Equally Religious",'1'= "More Religious")
-
-fig_int <- ggplot(d, aes(x=MI_economic_capital, y=childcare_help_rels,
-                         colour=factor(familyBariReligiousAfter))) +
-  
-  geom_boxplot(show.legend=T, width=0.2,fill="transparent",aes(fill=factor(familyBariReligiousAfter)))+
-  
-  
-  geom_jitter(width = 0.3,cex=0.5,show.legend=T,alpha=0.6, height=.3) +
-  
-  geom_smooth(data=mu_summary,method = 'lm', aes(group=1,y=Estimate,ymin=Q5,ymax=Q95,colour="Credibility interval"),
-              stat = "identity",fill="grey16",colour="black",show.legend=F)+
-  
-  facet_wrap(~familyBariReligiousAfter, ncol =3,labeller = as_labeller(religiosity)) +
-  #aes(fill = as.factor(familyBariReligiousAfter))+
-  
-  scale_x_continuous(name="Market integration",limits=c(-3,3))+
-  
-  scale_y_continuous(name="Relatives helping with childcare",
-                     breaks=c(2,4,6), labels=c("2","4","6"),limits=c(-0.5,7.5))+
-  theme_bw() +
-  
-  #breaks=c("-2","0","2","4"),,
-  #labels=c("-2","0","2","4")
-  
-  scale_colour_manual(name = "Credibility Interval\n+/- 97.5% ", labels = c("", "", ""),
-                       values=c(colors),
-                      guide = guide_legend(override.aes = list(linetype = c(0,0,0),shape=c(NA,NA,NA))))+
-  
-  theme(panel.grid.major = element_blank(),
-        panel.grid.minor = element_blank(),
-        legend.key.size = unit(0.15, "in"),
-        legend.key = element_rect(colour = "transparent", fill = NA),
-        legend.box.background = element_blank(),
-        
-        axis.text.x = element_text(colour="grey20",size=10,angle=0,face="bold"),
-        axis.text.y = element_text(colour="grey20",size=10,angle=0,hjust=0,vjust=0,face="bold"),  
-        axis.title.x = element_text(colour="black",size=12,angle=0,hjust=.5,vjust=0,face="bold"),
-        strip.text.x = element_text(size = 13, colour = "black", face = "bold"),
-        axis.title.y = element_text(colour="black",size=12,angle=90,hjust=.5,vjust=.5,face="bold")) #+
-  #theme(legend.position="none")+theme(axis.title.x=element_blank())
-
-fig_int
-##### HERE - FIX LEGEND!!!
+# library(wesanderson)
+# library(tidyverse)
+# library(brms)
+# 
+# setwd("C:/Users/robert/Dropbox/Github/Kin_networks_Bangladesh")
+# data <- read.csv("newdata.csv")
+# options(scipen=999)
+# data <- data %>% filter (sex==0)
+# 
+# # get mean geo distance  non rels
+# M1 <- readRDS("C:/Users/robert/Dropbox/Github/Kin_networks_Bangladesh/results/Religiosity_predicted_by_geo_distance_relatives_normal.rds")
+# 
+# ## add the dummy variable back
+# 
+# attach(data)
+# newdata <- data.frame(
+#   kids_in_hh = mean(kids_in_hh),
+#   age_wife = mean(age_wife),
+#   religion=mean(religion),
+#   sex=mean(sex),
+#   #dummy_no_non_rels=mean(dummy_no_non_rels),
+#   geo_distance_rels = c(1,2,3,4,5),
+#   religious_knowledge_scale=mean(religious_knowledge_scale),
+#   MI_geo_proximity=mean(MI_geo_proximity),
+#   MI_economic_capital=mean(MI_economic_capital),
+#   MI_human_capital=mean(MI_human_capital)
+# )
+# detach(data)
+# 
+# mu_summary <-
+#   fitted(M1, 
+#          newdata = newdata, probs=c(0.05,0.95)) %>%
+#   as_tibble() 
+# 
+# 
+# 
+# mu_summary$geo_distance_rels2 <- c(1,2,3,4,5)
+# 
+# #mu_summary <- mu_summary[c(2,4,5),]
+# 
+# # group same house with neighbor and Matlab and Bangladesh together
+# data$geo_distance_rels <- round(data$geo_distance_rels, digits = 0)
+# 
+# 
+# 
+# 
+# data$geo_distance_rels2 <- ifelse(data$geo_distance_rels>3,3,data$geo_distance_rels)
+# 
+# plyr::count(data$geo_distance_rels2)
+# ##### HERE!!!!!  There are same houshold, neighbor and 
+# 
+# 
+# data2 <- data %>% left_join (mu_summary, by =c("geo_distance_rels2"="geo_distance_rels2"))
+# 
+# data2$geo_distance_rels2[is.na(data2$geo_distance_rels2)] = 3
+# 
+# plyr::count(data2$geo_distance_rels2)
+# 
+# 
+# 
+# fig6 <- ggplot(data2, aes(x=factor(geo_distance_rels2), y=familyBariReligiousAfter,fill=factor(geo_distance_rels2), colour=factor(geo_distance_rels2))) +
+#   geom_boxplot(show.legend=T, width=0.2,fill="transparent",aes(colour=factor(geo_distance_rels2)))+
+#   geom_jitter(width = 0.2,show.legend=T)+
+#   
+#   
+#   geom_smooth(method = 'lm', aes(group=1,y=Estimate,ymin=Q5,ymax=Q95,colour="Credibility interval"),
+#               stat = "identity",fill="grey16",colour="black",show.legend=T)+
+#   #theme(legend.position = "none")+
+#   
+#   
+#   
+#   scale_x_discrete(name="Geographic distance relatives",
+#                    breaks=c(1,2,3), labels=c("Same household", "Neighbor","Matlab\n Or Bangladesh"))+
+#   
+#   
+#   
+#   scale_y_continuous(name="Relative Religiosity",
+#                      breaks=c(-1,0,1), labels=c("Less","Same","More"),limits=c(-1,1))+
+#   theme_bw() +
+#   
+#   # scale_colour_discrete(name = "Credibility Interval", labels = c("+/- 97.5%")) +
+#   scale_fill_manual(name = "Boxplots", labels = c("Less religious","Equally religious", "More religious"),
+#                     
+#                     values=wes_palette(n=3, name="FantasticFox1"),
+#                     
+#                     
+#                     guide = guide_legend(override.aes = list(linetype = c(0, 0,0))))+
+#   
+#   
+#   scale_colour_manual(name = "Credibility Interval", labels = c("+/- 97.5%", "", ""),
+#                       values = c(wes_palette(n=3, name="FantasticFox1"),"black"),
+#                       
+#                       
+#                       guide = guide_legend(override.aes = list(linetype = c(1,0,0))))+
+#   
+#   theme(panel.grid.major = element_blank(),
+#         panel.grid.minor = element_blank(),
+#         legend.key.size = unit(0.15, "in"),
+#         legend.key = element_rect(colour = "transparent", fill = NA),
+#         legend.box.background = element_blank(),
+#         
+#         axis.text.x = element_text(colour="grey20",size=10,angle=0,face="bold"),
+#         axis.text.y = element_text(colour="grey20",size=10,angle=0,hjust=0,vjust=0,face="bold"),  
+#         axis.title.x = element_text(colour="black",size=12,angle=0,hjust=.5,vjust=0,face="bold"),
+#         axis.title.y = element_text(colour="black",size=12,angle=90,hjust=.5,vjust=.5,face="bold"))+
+#   theme(legend.position="none") #+
+# # theme(axis.title.x=element_blank(),
+# #                                axis.text.x=element_blank(),
+# #                             axis.ticks.x=element_blank())
+# 
+# fig6
+# 
+# 
+# 
+# ## brms figures -- in Mcelreaths book
+# #https://bookdown.org/ajkurz/Statistical_Rethinking_recoded/linear-models.html#a-gaussian-model-of-height
+# 
+# 
+# 
+# 
+# # To change the probability intervals
+# 
+# fitted(b4.3, newdata = weight.seq, probs = c(.25, .75))
+# 
+# 
+# # Plot the Markov Chains
+# plot(M1)
+# 
+# 
+# # Plot the PP checks for key models
+# ####HERE!!!!!
+# pp <- predict(M1)
+# 
+# 
+# predict(M1, newdata = newdata)
+# 
+# 
+# 
+# 
+# ## try to write a function that does all the stuff above but takes a new model each time!!!
+# 
+# mcmc_areas(posterior, pars = c("b_Intercept","b_kids_in_hh","b_age_wife",                
+#  "b_religion","b_familyBariReligiousAfter","b_religious_knowledge_scale",
+#  "b_MI_geo_proximity","b_MI_economic_capital","b_MI_human_capital"),
+#  prob=0.8,
+#  prob_outer = 0.99,
+#  point_est = "median")
+# 
+# mcmc_areas(result, pars = c("b_familyBariReligiousAfter","b_religion"))
+# 
+# 
+# 
+# posterior1 <- posterior[, , 5]
+# posterior2 <- posterior[, , 4]
+# 
+# result <- array(c(posterior1,posterior2),dim=c(1000,4,2))
+# 
+# vector1 <- posterior[, , 5]
+# vector2 <- posterior[, , 4]
+# column.names <- c("chain:1","chain:2","chain:3","chain:4")
+# row.names <- NULL
+# matrix.names <- c("b_familyBariReligiousAfter","b_religion")
+# 
+# # Take these vectors as input to the array.
+# result <- array(c(vector1,vector2),dim = c(1000,4,2),dimnames = list(row.names,column.names,
+#                                                                   matrix.names))
+# dimnames(result)[[1]] <- "iterations"
+# 
+# dimnames(ar)[[3]] <- c("G", "H", "I")
+#                 
+# mcmc_areas(
+#   result, 
+#   pars = pars = c("b_Intercept","b_kids_in_hh","b_age_wife",                
+#                   "b_religion","b_familyBariReligiousAfter","b_religious_knowledge_scale",
+#                   "b_MI_geo_proximity","b_MI_economic_capital","b_MI_human_capital"),
+#   prob = 0.8, 
+#   prob_outer = 0.99, 
+#   point_est = "median")               
+# 
+# 
+# #"b_familyBariReligiousAfter" "b_religion"
+# 
+# #### posterior predictive checks
+# 
+# ####################################################################################
+# ## the childcare religiosity X MI interaction model
+# 
+# M1 <- readRDS("C:/Users/robert/Dropbox/Github/Kin_networks_Bangladesh/results/Childcare_help_rels_w_intx.rds")
+# 
+# setwd("C:/Users/robert/Dropbox/Github/Kin_networks_Bangladesh")
+# data <- read_csv("newdata.csv")
+# 
+# d <- data[c(35,7:9,44,47,49,51,45)] 
+# 
+# d <- d[complete.cases(d), ] 
+# d$childcare_help_rels<-as.integer(d$childcare_help_rels)
+# 
+# # religious_seq <- tibble(religiosity = seq(from = -1, to = 1, by = 1))
+# 
+# attach(d)
+# newdata <- tidyr::crossing(  # tidyr::crossing allows you to make df with different variable lengths
+#   kids_in_hh = mean(kids_in_hh),
+#   R_NUM_SIBS = mean(R_NUM_SIBS),
+#   religion=mean(religion),
+#   familyBariReligiousAfter = c(-1,0,1),
+#   religious_knowledge_scale=mean(religious_knowledge_scale),
+#   MI_geo_proximity=mean(MI_geo_proximity),
+#   MI_economic_capital=seq(min(MI_economic_capital), max(MI_economic_capital), length.out = 100),
+#   MI_human_capital=mean(MI_human_capital)
+# ) %>% as.data.frame
+# detach(d)
+# 
+# 
+# 
+# mu_summary <-
+#   fitted(M1, 
+#          newdata = newdata, probs=c(0.05,0.95)) %>%
+#   as_tibble() %>%
+#   # let's tack on the `religiosity` values from `religious_seq` if necessary (here it is not)
+#   bind_cols(tibble(newdata$familyBariReligiousAfter),tibble(newdata$MI_economic_capital))
+#  
+# mu_summary
+# 
+# # rename newdata$familyBariReligiousAfter  and newdata$MI_economic_capital
+# 
+# # names(mtcars) <- c("miles_gallon", "cylinders", "display", "horsepower")
+# # names(mtcars)
+# names(mu_summary)<- c("Estimate","Est.Error","Q5","Q95","familyBariReligiousAfter","MI_economic_capital")
+# names(mu_summary)
+# 
+# #fill=factor(familyBariReligiousAfter),
+# #data2 <- d %>% left_join (mu_summary, by=c("familyBariReligiousAfter"="familyBariReligiousAfter"))
+# colors=c("darkslateblue","springgreen4","salmon4") 
+# religiosity <- c('-1' = "Less Religious",'0' = "Equally Religious",'1'= "More Religious")
+# 
+# fig_int <- ggplot(d, aes(x=MI_economic_capital, y=childcare_help_rels,
+#                          colour=factor(familyBariReligiousAfter))) +
+#   
+#   geom_boxplot(show.legend=T, width=0.2,fill="transparent",aes(fill=factor(familyBariReligiousAfter)))+
+#   
+#   
+#   geom_jitter(width = 0.3,cex=0.5,show.legend=T,alpha=0.6, height=.3) +
+#   
+#   geom_smooth(data=mu_summary,method = 'lm', aes(group=1,y=Estimate,ymin=Q5,ymax=Q95,colour="Credibility interval"),
+#               stat = "identity",fill="grey16",colour="black",show.legend=F)+
+#   
+#   facet_wrap(~familyBariReligiousAfter, ncol =3,labeller = as_labeller(religiosity)) +
+#   #aes(fill = as.factor(familyBariReligiousAfter))+
+#   
+#   scale_x_continuous(name="Market integration",limits=c(-3,3))+
+#   
+#   scale_y_continuous(name="Relatives helping with childcare",
+#                      breaks=c(2,4,6), labels=c("2","4","6"),limits=c(-0.5,7.5))+
+#   theme_bw() +
+#   
+#   #breaks=c("-2","0","2","4"),,
+#   #labels=c("-2","0","2","4")
+#   
+#   scale_colour_manual(name = "Credibility Interval\n+/- 97.5% ", labels = c("", "", ""),
+#                        values=c(colors),
+#                       guide = guide_legend(override.aes = list(linetype = c(0,0,0),shape=c(NA,NA,NA))))+
+#   
+#   theme(panel.grid.major = element_blank(),
+#         panel.grid.minor = element_blank(),
+#         legend.key.size = unit(0.15, "in"),
+#         legend.key = element_rect(colour = "transparent", fill = NA),
+#         legend.box.background = element_blank(),
+#         
+#         axis.text.x = element_text(colour="grey20",size=10,angle=0,face="bold"),
+#         axis.text.y = element_text(colour="grey20",size=10,angle=0,hjust=0,vjust=0,face="bold"),  
+#         axis.title.x = element_text(colour="black",size=12,angle=0,hjust=.5,vjust=0,face="bold"),
+#         strip.text.x = element_text(size = 13, colour = "black", face = "bold"),
+#         axis.title.y = element_text(colour="black",size=12,angle=90,hjust=.5,vjust=.5,face="bold")) #+
+#   #theme(legend.position="none")+theme(axis.title.x=element_blank())
+# 
+# fig_int
+# ##### HERE - FIX LEGEND!!!
