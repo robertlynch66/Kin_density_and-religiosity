@@ -5,6 +5,7 @@ library(tidyverse)
 data <- read.csv("new_MI_data.csv")
 
 
+data2 <- data[!duplicated(data$idwife), ]
 # make MI indices
 # first categorize occupations
 ##START HERE####### with MIdata 
@@ -16,6 +17,28 @@ data <- read.csv("new_MI_data.csv")
 #22 local government, 4 day labour,10 service, 16 house or shop rent,
 #23 driver/rickshaw-puller, 5 fishing,11 pension, 18 housewife, 24 other (give note)
 #7 handicraft, 24 other
+
+# x freq
+# 1   0  126
+# 2   1  148
+# 3   2   55
+# 4   3    1
+# 5   4   67
+# 6   5   12
+# 7   6    5
+# 8   7    4
+# 9   8    6
+# 10  9  131
+# 11 10  141
+# 12 11    3
+# 13 12   25
+# 14 13    8
+# 15 15    1
+# 16 19    3
+# 17 21    4
+# 18 23   21
+# 19 24    4
+# 20 25    1
 
 #- from least to most integrated
 # 2013 PNAS paper
@@ -174,7 +197,7 @@ data$occupation_agriculture_dummy <- recode(data$occupation_agriculture_dummy,'0
 # age of wife is weirdly connect to MI variables
 
 # get 10-12 assets of particular interest for MI
-w1 <- read.csv("Main_table_pgs_1-6_2.csv")
+w1 <- read.csv("Main_table_pgs_1-6.csv")
 
 plyr::count(w1$landOwnedFarmAmount) # see below 
 
@@ -225,8 +248,11 @@ plyr::count(w1$assetTelevision)
 plyr::count(w1$assetSolarPanel)
 #Land Inheritance
 
-w <- w1 %>% select (1,134,136,138,69,144)
+w <- w1 %>% select (1,112,,110,118,43)
 w[is.na(w)]<-0
+colnames(w) <- c('id','assetComputer', 'assetSmartphone','landOwnedFarmAmount','assetElectricity')
+# remove duplicates
+data <- data[!duplicated(data$idwife), ]
 # link w to data
 data <- data %>% left_join(w, by=c("idwife"="id"))
 plyr::count(data$landOwnedFarmAmount)
