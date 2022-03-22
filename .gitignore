@@ -2,3 +2,7 @@
 .Rhistory
 .RData
 .Ruserdata
+non_relatives_in_NW_neg_bin_sex.rds
+NW_total_lognormal_sex.rds
+percent_relatives_in_NW_lognormal_sex.rds
+relatives_in_NW_lognormal_sex.rds
