@@ -6,7 +6,6 @@ husbands_new <- read.csv("C:/Users/robert/Dropbox/Github/Intensive extensive kin
 
 ## make sure DV's for husbands are okay
 # husbands_new$rels_in_NW <- husbands_new$rels_in_NW +0.001
-# husbands_new$non_rels <- husbands_new$non_rels+0.001
 
 data1 <-  husbands_new %>% filter (Respondent_a=="Wife" | Respondent_a=="Husband")
 data2 <-  husbands_new %>% filter (Respondent_a=="Wife")
